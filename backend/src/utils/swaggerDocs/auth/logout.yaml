@@ -1,0 +1,14 @@
+paths:
+  /api/v1/auth/logout:
+    post:
+      summary: Logout user
+      description: Logout user and invalidate the token.
+      tags:
+        - Auth
+      responses:
+        '200':
+          description: User logged out successfully
+        '401':
+          description: Unauthorized (token not provided or invalid)
+        '500':
+          description: Internal server error

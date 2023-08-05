@@ -3,6 +3,14 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User, UserDocument } from '../models/User';
 
+export const logoutUser = (req: Request, res: Response) => {
+  res.setHeader('Authorization', '');
+
+  return res.status(200).json({
+    message: 'User logged out successfully',
+  });
+};
+
 export const loginUser = async (
   req: Request,
   res: Response
