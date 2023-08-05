@@ -9,7 +9,7 @@ const options = {
       description: 'API documentation for TeamTrackr',
     },
   },
-  apis: ['../routes'], // Replace with the path to your TypeScript file(s) containing JSDoc comments
+  apis: ['./src/routes/*.route.ts'], // Replace with the path to your TypeScript file(s) containing JSDoc comments
 };
 
 const swaggerSpec = swaggerJsdoc(options);

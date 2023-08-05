@@ -5,12 +5,10 @@ const router = express.Router();
 
 /**
  * @swagger
- * /register:
+ * /api/v1/auth/register:
  *   post:
  *     summary: Register a new user
  *     description: Register a new user with the provided details.
- *     tags:
- *       - Users
  *     requestBody:
  *       required: true
  *       content:
@@ -26,16 +24,29 @@ const router = express.Router();
  *                 type: string
  *               level:
  *                 type: string
+ *                 enum: [Junior, Mid-level, Senior, CEO]
  *               yearsOfWork:
  *                 type: number
+ *               availability:
+ *                 type: object
+ *                 properties:
+ *                   status:
+ *                     type: string
+ *                     enum: [Available, Not Available]
+ *                   reason:
+ *                     type: string
+ *                   nextAvailability:
+ *                     type: string
+ *                     format: date
  *     responses:
- *       200:
- *         description: Successful registration
+ *       201:
+ *         description: User registered successfully
  *       400:
- *         description: Invalid request
+ *         description: User with this email already exists
  *       500:
  *         description: Internal server error
  */
+
 router.post('/register', registerUser);
 
 export default router;

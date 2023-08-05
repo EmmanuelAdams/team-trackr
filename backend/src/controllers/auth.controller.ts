@@ -1,15 +1,20 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { User } from '../entities/schemas/user.schema';
-import { UserDocument } from '../entities/models/user.model';
+import { User, UserDocument } from '../models/User';
 
 export const registerUser = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { name, email, password, level, yearsOfWork } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      level,
+      yearsOfWork,
+      availability,
+    } = req.body;
 
     // Check if the user with the provided email already exists
     const existingUser = await User.findOne({ email });
@@ -21,6 +26,13 @@ export const registerUser = async (
 
     // Hash the password using bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Convert the nextAvailability string to a Date object
+    if (availability && availability.nextAvailability) {
+      availability.nextAvailability = new Date(
+        availability.nextAvailability
+      );
+    }
 
     // Create the user document with the hashed password
     const newUser: Partial<UserDocument> = {
@@ -34,13 +46,13 @@ export const registerUser = async (
         | 'Senior'
         | 'CEO',
       yearsOfWork,
-      availability: { status: 'Available' },
+      availability,
     };
 
     // Save the new user to the database
     const createdUser = await User.create(
       newUser as UserDocument
-    ); // Use type assertion
+    );
 
     return res.status(201).json({
       message: 'User registered successfully',
