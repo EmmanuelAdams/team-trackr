@@ -8,8 +8,18 @@ const options = {
       version: '1.0.0',
       description: 'API documentation for TeamTrackr',
     },
+    tags: [
+      {
+        name: 'Auth',
+        description: 'Authentication endpoints',
+      },
+      {
+        name: 'User',
+        description: 'User endpoints',
+      },
+    ],
   },
-  apis: ['./src/routes/*.route.ts'], // Replace with the path to your TypeScript file(s) containing JSDoc comments
+  apis: ['./src/utils/swaggerDocs/**/*.yaml'],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
