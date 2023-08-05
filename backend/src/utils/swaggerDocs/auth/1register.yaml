@@ -1,8 +1,8 @@
 paths:
-  /api/v1/auth/register:
+  /api/v1/auth/register/employee:
     post:
-      summary: Register user
-      description: Register a new user with the provided details.
+      summary: Register employee
+      description: Register a new employee with the provided details.
       tags:
         - Auth
       requestBody:
@@ -36,7 +36,41 @@ paths:
                       format: date
       responses:
         '201':
-          description: User registered successfully
+          description: Employee registered successfully
+        '400':
+          description: User with this email already exists
+        '500':
+          description: Internal server error
+
+  /api/v1/auth/register/organization:
+    post:
+      summary: Register organization
+      description: Register a new organization with the provided details.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+                level:
+                  type: string
+                  enum: [Junior, Mid-level, Senior, CEO]
+                yearsOfWork:
+                  type: number
+                organizationName:
+                  type: string
+      responses:
+        '201':
+          description: Organization registered successfully
         '400':
           description: User with this email already exists
         '500':

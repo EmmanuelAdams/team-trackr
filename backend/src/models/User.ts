@@ -13,6 +13,9 @@ export interface UserDocument extends Document {
   level: 'Junior' | 'Mid-level' | 'Senior' | 'CEO';
   yearsOfWork: number;
   availability: Availability;
+  userType: 'Employee' | 'Organization';
+  organizationName?: string;
+  employees?: string[];
 }
 
 const userSchema = new Schema<UserDocument>({
@@ -67,7 +70,24 @@ const userSchema = new Schema<UserDocument>({
         },
       },
     },
+  },
+  userType: {
+    type: String,
+    enum: ['Employee', 'Organization'],
     required: true,
+  },
+  organizationName: {
+    type: String,
+    required: function (this: UserDocument) {
+      return this.userType === 'Organization';
+    },
+  },
+  employees: {
+    type: [String],
+    required: function (this: UserDocument) {
+      return this.userType === 'Organization';
+    },
+    default: [],
   },
 });
 

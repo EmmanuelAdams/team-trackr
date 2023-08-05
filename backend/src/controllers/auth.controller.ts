@@ -58,7 +58,7 @@ export const loginUser = async (
   }
 };
 
-export const registerUser = async (
+export const registerEmployee = async (
   req: Request,
   res: Response
 ) => {
@@ -89,7 +89,7 @@ export const registerUser = async (
       ) {
         return res.status(400).json({
           message:
-            'Reason and next Availabile date are required for "Not Available" status',
+            'Reason and next Available date are required for "Not Available" status',
         });
       }
       if (availability.nextAvailability) {
@@ -110,6 +110,7 @@ export const registerUser = async (
         | 'CEO',
       yearsOfWork,
       availability,
+      userType: 'Employee',
     };
 
     const createdUser = await User.create(
@@ -117,11 +118,64 @@ export const registerUser = async (
     );
 
     return res.status(201).json({
-      message: 'User registered successfully',
+      message: 'Employee registered successfully',
       user: createdUser,
     });
   } catch (error) {
-    console.error('Error registering user:', error);
+    console.error('Error registering employee:', error);
+    return res
+      .status(500)
+      .json({ message: 'Internal server error' });
+  }
+};
+
+export const registerOrganization = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const {
+      name,
+      email,
+      password,
+      level,
+      yearsOfWork,
+      organizationName,
+    } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        message: 'User with this email already exists',
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser: Partial<UserDocument> = {
+      name,
+      email,
+      password: hashedPassword,
+      level: level as
+        | 'Junior'
+        | 'Mid-level'
+        | 'Senior'
+        | 'CEO',
+      yearsOfWork,
+      organizationName,
+      userType: 'Organization',
+    };
+
+    const createdUser = await User.create(
+      newUser as UserDocument
+    );
+
+    return res.status(201).json({
+      message: 'Organization registered successfully',
+      user: createdUser,
+    });
+  } catch (error) {
+    console.error('Error registering organization:', error);
     return res
       .status(500)
       .json({ message: 'Internal server error' });

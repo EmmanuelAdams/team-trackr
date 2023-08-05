@@ -12,7 +12,7 @@ TeamTrackr is a staffing platform designed to streamline workforce management an
 
 ## Demo
 
-You can find a live demo of TeamTrackr [here](https://teamtrackr-demo.netlify.app).
+You can find a live demo of TeamTrackr [here]().
 
 ## Installation
 
@@ -21,7 +21,11 @@ To run TeamTrackr locally, follow these steps:
 1. Clone the repository: `git clone https://github.com/EmmanuelAdams/team-trackr.git`
 2. Install dependencies: `npm install`
 3. Start the development server: `npm start`
-4. Open your browser and visit `http://localhost:3000`
+4. Open your browser and visit `http://localhost:4000`
+
+## Documentation
+
+> View the app documentation here: [v1]()
 
 ## Technologies Used
 
