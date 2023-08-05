@@ -73,10 +73,22 @@ export const registerUser = async (
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (availability && availability.nextAvailability) {
-      availability.nextAvailability = new Date(
-        availability.nextAvailability
-      );
+    if (availability) {
+      if (
+        availability.status === 'Not Available' &&
+        (!availability.reason ||
+          !availability.nextAvailability)
+      ) {
+        return res.status(400).json({
+          message:
+            'Reason and next Availabile date are required for "Not Available" status',
+        });
+      }
+      if (availability.nextAvailability) {
+        availability.nextAvailability = new Date(
+          availability.nextAvailability
+        );
+      }
     }
 
     const newUser: Partial<UserDocument> = {
