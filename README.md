@@ -54,6 +54,6 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 
 ## Acknowledgements
 
-Special thanks to [Samuel][Pluralsight](https://www.pluralsight.com/) and [Udemy](https://www.udemy.com/) for providing valuable resources and learning materials.
+Special thanks to [Samuel](https://github.com/Samuelfapohunda), [Pluralsight](https://www.pluralsight.com/) and [Udemy](https://www.udemy.com/) for providing valuable resources and learning materials.
 
 ---
