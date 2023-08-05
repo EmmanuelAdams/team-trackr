@@ -1,0 +1,29 @@
+# Directories
+node_modules/
+build/
+dist/
+
+# Files
+.env
+.env.*
+*.log
+*.pid
+*.lock
+
+# Dependency management
+package-lock.json
+yarn.lock
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.sublime*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Compiled code and build artifacts
+*.map
+*.bundle.js
+*.min.js

@@ -1,0 +1,19 @@
+{
+  "name": "teamtrackr",
+  "version": "1.0.0",
+  "description": "Streamline workforce management and foster team collaboration with our dynamic staffing platform. Easily view colleague availability, status, and profiles, including experience levels and years of service. Designed for user-friendliness and continuous improvement.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmmanuelAdams/team-trackr.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EmmanuelAdams/team-trackr/issues"
+  },
+  "homepage": "https://github.com/EmmanuelAdams/team-trackr#readme"
+}
