@@ -1,29 +1,31 @@
 import { model, Schema, Document } from 'mongoose';
 
+interface Availability {
+  status: 'Available' | 'Not Available';
+  reason?: string;
+  nextAvailability?: Date;
+}
+
 export interface UserDocument extends Document {
   name: string;
   password: string;
   email: string;
   level: 'Junior' | 'Mid-level' | 'Senior' | 'CEO';
   yearsOfWork: number;
-  availability: {
-    status: 'Available' | 'Not Available';
-    reason?: string;
-    nextAvailability?: Date;
-  };
+  availability: Availability;
 }
 
 const userSchema = new Schema<UserDocument>({
   name: {
     type: String,
     required: true,
-    minlength: 3, // Minimum length for the name (adjust as needed)
-    maxlength: 20, // Maximum length for the name (adjust as needed)
+    minlength: 3,
+    maxlength: 20,
   },
   password: {
     type: String,
     required: true,
-    minlength: 6, // Minimum length for the password (adjust as needed)
+    minlength: 6,
   },
   email: {
     type: String,
@@ -31,7 +33,7 @@ const userSchema = new Schema<UserDocument>({
     unique: true,
     validate: {
       validator: (value: string) =>
-        /\S+@\S+\.\S+/.test(value), // Validate email format
+        /\S+@\S+\.\S+/.test(value),
       message: 'Invalid email format',
     },
   },
@@ -42,13 +44,30 @@ const userSchema = new Schema<UserDocument>({
   },
   yearsOfWork: { type: Number, required: true },
   availability: {
-    status: {
-      type: String,
-      enum: ['Available', 'Not Available'],
-      required: true,
+    type: {
+      status: {
+        type: String,
+        enum: ['Available', 'Not Available'],
+        required: true,
+      },
+      reason: {
+        type: String,
+        required: function (this: UserDocument) {
+          return (
+            this.availability?.status === 'Not Available'
+          );
+        },
+      },
+      nextAvailability: {
+        type: Date,
+        required: function (this: UserDocument) {
+          return (
+            this.availability?.status === 'Not Available'
+          );
+        },
+      },
     },
-    reason: { type: String },
-    nextAvailability: { type: Date },
+    required: true,
   },
 });
 
