@@ -36,7 +36,6 @@ export const loginUser = async (
       });
     }
 
-    // Generate JWT token
     const secretKey =
       process.env.SECRET_KEY || 'qwert@4321';
     const token = jwt.sign(
@@ -45,11 +44,13 @@ export const loginUser = async (
       { expiresIn: '7d' }
     );
 
-    return res.status(200).json({
-      message: 'User logged in successfully',
-      user: existingUser,
-      token: token,
-    });
+    return res
+      .status(200)
+      .header('Authorization', `Bearer ${token}`)
+      .json({
+        message: 'User logged in successfully',
+        user: existingUser,
+      });
   } catch (error) {
     console.error('Error logging in user:', error);
     return res

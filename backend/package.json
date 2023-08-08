@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "test": "NODE_ENV=test jest --detectOpenHandles --runInBand --watch",
+    "test": "NODE_ENV=test jest --detectOpenHandles --verbose  --runInBand --watch",
     "start": "nodemon --exec ts-node --files src/index.ts"
   },
   "keywords": [],

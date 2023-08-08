@@ -8,7 +8,6 @@ const employeePassword = 'testpassword';
 const organizationPassword = 'testpassword';
 
 afterAll(async () => {
-  console.log('Running afterAll');
   await User.deleteMany();
   await server.close();
 });
@@ -233,7 +232,7 @@ describe('Login Routes', () => {
     expect(response.body.message).toBe(
       'User logged in successfully'
     );
-    expect(response.body.token).toBeDefined();
+    expect(response.header.authorization).toBeDefined();
   }, 10000);
 
   it('should login employee user successfully', async () => {
@@ -248,6 +247,7 @@ describe('Login Routes', () => {
         availability: {
           status: 'Available',
         },
+        userType: 'Employee',
       });
 
     const response = await request(app)
@@ -261,7 +261,7 @@ describe('Login Routes', () => {
     expect(response.body.message).toBe(
       'User logged in successfully'
     );
-    expect(response.body.token).toBeDefined();
+    expect(response.header.authorization).toBeDefined();
   }, 10000);
 
   it('should return 401 for invalid credentials', async () => {
@@ -276,5 +276,51 @@ describe('Login Routes', () => {
     expect(response.body.message).toBe(
       'Invalid credentials'
     );
+  });
+
+  describe('Logout Route', () => {
+    it('should logout user successfully', async () => {
+      await request(app)
+        .post('/api/v1/auth/register/employee')
+        .send({
+          name: 'Test Employee',
+          email: employeeEmail,
+          password: employeePassword,
+          level: 'Mid-level',
+          yearsOfWork: 2,
+          availability: {
+            status: 'Available',
+          },
+          userType: 'Employee',
+        });
+
+      const response = await request(app)
+        .post('/api/v1/auth/login')
+        .send({
+          email: employeeEmail,
+          password: employeePassword,
+        });
+
+      const logoutResponse = await request(app)
+        .post('/api/v1/auth/logout')
+        .set(
+          'Authorization',
+          response.header.authorization
+        );
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe(
+        'User logged in successfully'
+      );
+      expect(response.header.authorization).toBeDefined();
+      expect(logoutResponse.status).toBe(200);
+      expect(logoutResponse.body.message).toBe(
+        'User logged out successfully'
+      );
+      expect(logoutResponse.header).toHaveProperty(
+        'authorization'
+      );
+      expect(logoutResponse.header.authorization).toBe('');
+    });
   });
 });
