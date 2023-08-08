@@ -1,7 +1,7 @@
-import swaggerUi from 'swagger-ui-express';
 import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
+import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './utils/swaggerSpec';
 import morgan from 'morgan';
 
@@ -9,7 +9,8 @@ dotenv.config();
 require('./db');
 
 const app = express();
-const port = process.env.PORT || 4000;
+const serverPort = process.env.PORT || 4000;
+const testPort = 5000;
 
 // Middleware
 app.use(express.json());
@@ -23,6 +24,11 @@ app.use(
 // Routes
 app.use('/api/v1/auth', authRoutes);
 
-app.listen(port, () => {
+const port =
+  process.env.NODE_ENV === 'test' ? testPort : serverPort;
+
+const server = app.listen(port, () => {
   console.log(`🛡  Server listening on port: ${port} 🛡`);
 });
+
+export { app, server };

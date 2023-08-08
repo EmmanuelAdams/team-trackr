@@ -23,7 +23,7 @@ const userSchema = new Schema<UserDocument>({
     type: String,
     required: true,
     minlength: 3,
-    maxlength: 20,
+    maxlength: 50,
   },
   password: {
     type: String,
@@ -45,7 +45,12 @@ const userSchema = new Schema<UserDocument>({
     enum: ['Junior', 'Mid-level', 'Senior', 'CEO'],
     required: true,
   },
-  yearsOfWork: { type: Number, required: true },
+  yearsOfWork: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 99,
+  },
   availability: {
     type: {
       status: {

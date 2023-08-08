@@ -70,7 +70,37 @@ export const registerEmployee = async (
       level,
       yearsOfWork,
       availability,
+      userType,
     } = req.body;
+
+    if (password.length < 6) {
+      return res.status(400).json({
+        message:
+          'Password must be at least 6 characters long',
+      });
+    }
+
+    if (
+      !['Junior', 'Mid-level', 'Senior', 'CEO'].includes(
+        level
+      )
+    ) {
+      return res.status(400).json({
+        message: 'Invalid level',
+      });
+    }
+
+    if (yearsOfWork < 0 || yearsOfWork > 99) {
+      return res.status(400).json({
+        message: 'Years of work must be between 0 and 99',
+      });
+    }
+
+    if (!['Employee', 'Organization'].includes(userType)) {
+      return res.status(400).json({
+        message: 'Invalid userType',
+      });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
