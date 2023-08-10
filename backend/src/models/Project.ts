@@ -1,11 +1,13 @@
 import { Document, Schema, model } from 'mongoose';
 import { UserDocument } from './User';
+import { TaskDocument } from './Task';
 
 export interface ProjectDocument extends Document {
   name: string;
   description: string;
   assignedTo: UserDocument['_id'];
   startDate: Date;
+  tasks: TaskDocument['_id'];
   endDate: Date;
 }
 
@@ -17,6 +19,7 @@ const projectSchema = new Schema<ProjectDocument>({
     ref: 'User',
     required: true,
   },
+  tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }], // Reference to tasks using ObjectId
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
 });

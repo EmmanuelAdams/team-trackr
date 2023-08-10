@@ -2,6 +2,8 @@ import swaggerUi from 'swagger-ui-express';
 import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
+import projectRoutes from './routes/project.route';
+import taskRoutes from './routes/task.route';
 import swaggerSpec from './utils/swaggerSpec';
 import morgan from 'morgan';
 
@@ -10,6 +12,10 @@ require('./db');
 
 const app = express();
 const port = process.env.PORT || 4000;
+
+
+
+
 
 // Middleware
 app.use(express.json());
@@ -22,7 +28,10 @@ app.use(
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/projects', projectRoutes);
+app.use('/api/v1/', taskRoutes);
 
 app.listen(port, () => {
-  console.log(`🛡  Server listening on port: ${port} 🛡`);
+  console.log(`🛡  Server listening on port: ${port} 🛡`); 
 });
+ 

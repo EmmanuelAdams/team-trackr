@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-const mongoURL = process.env.MONGO_URI;
+const mongoURL = "mongodb+srv://samuel:fapdollars@cluster0.mqidkcu.mongodb.net/?retryWrites=true&w=majority";
 
 if (!mongoURL) {
   console.error(
