@@ -1,22 +1,30 @@
 import { Document, Schema, model } from 'mongoose';
+import { TaskDocument } from './Task';
 import { UserDocument } from './User';
 
 export interface ProjectDocument extends Document {
   name: string;
   description: string;
-  assignedTo: UserDocument['_id'];
+  createdBy: UserDocument['_id'];
+  tasks: TaskDocument['_id'][];
   startDate: Date;
   endDate: Date;
 }
 
 const projectSchema = new Schema<ProjectDocument>({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  assignedTo: {
+  name: { type: String, required: true, min: 3, max: 50 },
+  description: {
+    type: String,
+    required: true,
+    min: 3,
+    max: 300,
+  },
+  createdBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
+  tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
 });

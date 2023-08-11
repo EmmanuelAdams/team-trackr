@@ -11,6 +11,21 @@ export const logoutUser = (req: Request, res: Response) => {
   });
 };
 
+export const getAllUsers = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error fetching all users:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to fetch all users' });
+  }
+};
+
 export const loginUser = async (
   req: Request,
   res: Response
@@ -55,7 +70,7 @@ export const loginUser = async (
     console.error('Error logging in user:', error);
     return res
       .status(500)
-      .json({ message: 'Internal server error' });
+      .json({ message: 'Failed to login user' });
   }
 };
 
@@ -156,7 +171,7 @@ export const registerEmployee = async (
     console.error('Error registering employee:', error);
     return res
       .status(500)
-      .json({ message: 'Internal server error' });
+      .json({ message: 'Failed to register emoloyee' });
   }
 };
 
@@ -209,6 +224,31 @@ export const registerOrganization = async (
     console.error('Error registering organization:', error);
     return res
       .status(500)
-      .json({ message: 'Internal server error' });
+      .json({ message: 'Failed to register organization' });
+  }
+};
+
+export const deleteUser = async (
+  req: Request,
+  res: Response
+) => {
+  const userId = req.params.id;
+  try {
+    const deletedUser = await User.findByIdAndDelete(
+      userId
+    );
+    if (!deletedUser) {
+      return res
+        .status(404)
+        .json({ message: 'User not found' });
+    }
+    res
+      .status(200)
+      .json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to delete user' });
   }
 };

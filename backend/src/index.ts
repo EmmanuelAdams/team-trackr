@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.route';
+import projectRoutes from './routes/project.route';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './utils/swaggerSpec';
 import morgan from 'morgan';
@@ -22,7 +23,8 @@ app.use(
 );
 
 // Routes
-app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/', authRoutes);
+app.use('/api/v1/projects', projectRoutes);
 
 const port =
   process.env.NODE_ENV === 'test' ? testPort : serverPort;

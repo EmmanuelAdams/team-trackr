@@ -33,7 +33,7 @@ paths:
         '400':
           description: Invalid credentials
         '500':
-          description: Internal server error
+          description: Failed to login user
 
 definitions:
   User:

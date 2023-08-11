@@ -40,7 +40,7 @@ paths:
         '400':
           description: User with this email already exists
         '500':
-          description: Internal server error
+          description: Failed to register employee
 
   /api/v1/auth/register/organization:
     post:
@@ -74,4 +74,4 @@ paths:
         '400':
           description: User with this email already exists
         '500':
-          description: Internal server error
+          description: Failed to register organization

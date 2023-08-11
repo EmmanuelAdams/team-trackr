@@ -11,4 +11,4 @@ paths:
         '401':
           description: Unauthorized (token not provided or invalid)
         '500':
-          description: Internal server error
+          description: Failed to logout user

@@ -1,14 +1,29 @@
 import express from 'express';
-import { registerEmployee } from '../controllers/auth.controller';
-import { registerOrganization } from '../controllers/auth.controller';
-import { loginUser } from '../controllers/auth.controller';
-import { logoutUser } from '../controllers/auth.controller';
+import {
+  registerEmployee,
+  registerOrganization,
+  loginUser,
+  logoutUser,
+  deleteUser,
+  getAllUsers,
+} from '../controllers/auth.controller';
+import authenticate from '../middlewares/authentication';
 
 const router = express.Router();
 
-router.post('/register/employee', registerEmployee);
-router.post('/register/organization', registerOrganization);
-router.post('/login', loginUser);
-router.post('/logout', logoutUser);
+router.get('/users', getAllUsers);
+router.delete(
+  '/users/:id/delete',
+  authenticate,
+  deleteUser
+);
+
+router.post('/auth/register/employee', registerEmployee);
+router.post(
+  '/auth/register/organization',
+  registerOrganization
+);
+router.post('/auth/login', loginUser);
+router.post('/auth/logout', logoutUser);
 
 export default router;
