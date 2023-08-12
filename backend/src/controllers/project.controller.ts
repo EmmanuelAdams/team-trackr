@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 
 export const validateProjectInputsLength = (
@@ -47,18 +48,19 @@ export const getAllOrganizationProjects = async (
   try {
     const organizationId = req.user?._id;
 
-    console.log(organizationId);
-
     const projects = await Project.find({
       createdBy: organizationId,
     });
 
     res.status(200).json(projects);
   } catch (error) {
-    console.error('Error fetching all projects:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to fetch all projects' });
+    console.error(
+      'Error fetching all organization projects:',
+      error
+    );
+    return res.status(500).json({
+      message: 'Failed to fetch all organization projects',
+    });
   }
 };
 
@@ -67,6 +69,18 @@ export const createProject = async (
   res: Response
 ) => {
   try {
+    if (
+      (req.user?.userType !== 'Organization' &&
+        req.user?.userType !== 'Employee') ||
+      (req.user?.level !== 'CEO' &&
+        req.user?.level !== 'Senior')
+    ) {
+      return res.status(403).json({
+        message:
+          'You are not authorized to create a project',
+      });
+    }
+
     const {
       name,
       description,
@@ -93,7 +107,10 @@ export const createProject = async (
       }
 
       const savedProject = await newProject.save();
-      res.status(201).json(savedProject);
+      res.status(201).json({
+        project: savedProject,
+        message: 'Project created successfully',
+      });
     });
   } catch (error) {
     console.error('Error creating project:', error);
@@ -109,6 +126,12 @@ export const getProject = async (
 ) => {
   const projectId = req.params.id;
   try {
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      return res
+        .status(400)
+        .json({ message: 'Invalid project ID' });
+    }
+
     const project = await Project.findById(projectId);
 
     if (!project) {

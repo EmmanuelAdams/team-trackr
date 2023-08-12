@@ -6,12 +6,14 @@ import {
   logoutUser,
   deleteUser,
   getAllUsers,
+  getUser,
 } from '../controllers/auth.controller';
 import authenticate from '../middlewares/authentication';
 
 const router = express.Router();
 
 router.get('/users', getAllUsers);
+router.get('/users/:id', getUser);
 router.delete(
   '/users/:id/delete',
   authenticate,

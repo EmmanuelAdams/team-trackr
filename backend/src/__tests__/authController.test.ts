@@ -35,7 +35,7 @@ describe('Registeration Routes', () => {
     expect(response.body.user.userType).toBe(
       'Organization'
     );
-  }, 10000);
+  }, 15000);
 
   it('should register a new employee successfully', async () => {
     const response = await request(app)

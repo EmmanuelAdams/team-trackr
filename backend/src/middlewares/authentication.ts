@@ -16,13 +16,23 @@ const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.header('Authorization');
+  // const token = req.header('Authorization');
 
-  if (!token) {
+  // if (!token) {
+  //   return res
+  //     .status(401)
+  //     .json({ message: 'Authorization token missing' });
+  // }
+
+  const authHeader = req.header('Authorization');
+
+  if (!authHeader) {
     return res
       .status(401)
       .json({ message: 'Authorization token missing' });
   }
+
+  const token = authHeader.split(' ')[1];
 
   try {
     const secretKey =
@@ -42,10 +52,20 @@ const authenticate = (
     }
 
     req.user = {
-      _id: decodedToken.userId,
+      _id: decodedToken.userId || decodedToken._id,
       level: decodedToken.level,
       userType: decodedToken.userType,
     };
+
+    if (
+      req.body.createdBy &&
+      req.user._id !== req.body.createdBy
+    ) {
+      return res.status(403).json({
+        message:
+          'You are not authorized to perform this action',
+      });
+    }
 
     next();
   } catch (error) {

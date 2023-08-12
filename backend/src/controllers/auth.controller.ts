@@ -26,6 +26,32 @@ export const getAllUsers = async (
   }
 };
 
+export const getUser = async (
+  req: Request,
+  res: Response
+) => {
+  const _id = req.params.id;
+
+  try {
+    const user = await User.findById({
+      _id,
+    });
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: 'User not found' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to fetch user' });
+  }
+};
+
 export const loginUser = async (
   req: Request,
   res: Response
@@ -53,11 +79,16 @@ export const loginUser = async (
 
     const secretKey =
       process.env.SECRET_KEY || 'qwert@4321';
-    const token = jwt.sign(
-      { userId: existingUser._id },
-      secretKey,
-      { expiresIn: '7d' }
-    );
+
+    const tokenPayload = {
+      userId: existingUser._id,
+      userType: existingUser.userType,
+      level: existingUser.level,
+    };
+
+    const token = jwt.sign(tokenPayload, secretKey, {
+      expiresIn: '7d',
+    });
 
     return res
       .status(200)
