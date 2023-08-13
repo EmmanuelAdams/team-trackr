@@ -1,0 +1,69 @@
+paths:
+  /api/v1/projects/organization:
+    get:
+      summary: Get all organization projects
+      description: Retrieve all projects belonging to the requesting organization.
+      tags:
+        - Project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for authentication
+          example: Bearer [TOKEN]
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successfully retrieved organization projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/Project'
+        '401':
+          description: Unauthorized - Please provide a valid token
+          content:
+            application/json:
+              example:
+                message: Token missing or invalid
+        '403':
+          description: Forbidden - You are not authorized to access this resource
+          content:
+            application/json:
+              example:
+                message: You are not authorized to perform this action
+        '500':
+          description: An error occurred while fetching organization projects
+          content:
+            application/json:
+              example:
+                message: Failed to fetch all organization projects
+
+definitions:
+  Project:
+    type: object
+    properties:
+      _id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      createdBy:
+        type: string
+        description: The organization ID that created the project
+      startDate:
+        type: string
+        format: date-time
+      endDate:
+        type: string
+        format: date-time
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header

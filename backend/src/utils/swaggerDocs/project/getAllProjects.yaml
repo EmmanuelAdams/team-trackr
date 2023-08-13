@@ -1,0 +1,42 @@
+paths:
+  /api/v1/projects:
+    get:
+      summary: Get all projects
+      description: Retrieve all projects
+      tags:
+        - Project
+      responses:
+        '200':
+          description: Successfully retrieved all projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/Project'
+        '500':
+          description: An error occurred while fetching organization projects
+          content:
+            application/json:
+              example:
+                message: Failed to fetch all projects
+
+definitions:
+  Project:
+    type: object
+    properties:
+      _id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      createdBy:
+        type: string
+        description: The organization ID that created the project
+      startDate:
+        type: string
+        format: date-time
+      endDate:
+        type: string
+        format: date-time

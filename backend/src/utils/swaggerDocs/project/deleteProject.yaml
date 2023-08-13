@@ -1,0 +1,52 @@
+paths:
+  /api/v1/projects/{projectId}/delete:
+    delete:
+      summary: Delete a project
+      description: Delete an existing project based on its ID.
+      tags:
+        - Project
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: projectId
+          in: path
+          description: ID of the project to be deleted
+          required: true
+          type: string
+        - name: Authorization
+          in: header
+          example: Bearer [TOKEN]
+          description: Bearer token for authentication
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Project deleted successfully
+          content:
+            application/json:
+              example:
+                message: Project deleted successfully
+        '401':
+          description: Unauthorized - Please provide a valid token
+          content:
+            application/json:
+              example:
+                message: Token missing or invalid
+        '404':
+          description: Not Found - Project not found
+          content:
+            application/json:
+              example:
+                message: Project not found
+        '500':
+          description: Failed to delete project
+          content:
+            application/json:
+              example:
+                message: An error occurred while deleting the project.
+
+securityDefinitions:
+  BearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
