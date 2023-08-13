@@ -1,11 +1,27 @@
+import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import request from 'supertest';
 import { app, server } from '../index';
+import authenticate from '../middlewares/authentication';
 import { User } from '../models/User';
 
 const employeeEmail = 'employee@example.com';
 const organizationEmail = 'organization@example.com';
 const employeePassword = 'testpassword';
 const organizationPassword = 'testpassword';
+
+const mockUser = {
+  _id: new mongoose.Types.ObjectId(),
+  level: 'CEO',
+  userType: 'Employee',
+};
+
+const secretKey = 'qwerty@123';
+const mockToken = jwt.sign(mockUser, secretKey);
+
+beforeAll(() => {
+  app.use(authenticate);
+});
 
 afterAll(async () => {
   await User.deleteMany();
@@ -322,5 +338,58 @@ describe('Login Routes', () => {
       );
       expect(logoutResponse.header.authorization).toBe('');
     });
+  });
+});
+
+describe('Logout Route', () => {
+  it('should log out a logged in user successfully', async () => {
+    const newUser = new User({
+      _id: mockUser._id,
+      name: 'Test Logout',
+      email: 'logout@email.com',
+      password: organizationPassword,
+      level: mockUser.level,
+      userType: mockUser.userType,
+      yearsOfWork: 5,
+      organizationName: 'Test Logout Organization',
+    });
+
+    await newUser.save();
+
+    const response = await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Authorization', `Bearer ${mockToken}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe(
+      'User logged out successfully'
+    );
+  });
+
+  it('should handle a case where the user is not found', async () => {
+    await User.deleteMany();
+
+    const response = await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Authorization', `Bearer ${mockToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.message).toBe('User not found');
+  });
+
+  it('should handle errors during logging out', async () => {
+    // Mock an error scenario by manipulating the findById function
+    jest
+      .spyOn(User, 'findById')
+      .mockRejectedValue(new Error('Test error'));
+
+    const response = await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Authorization', `Bearer ${mockToken}`);
+
+    expect(response.status).toBe(500);
+    expect(response.body.message).toBe(
+      'Failed to log out user'
+    );
   });
 });

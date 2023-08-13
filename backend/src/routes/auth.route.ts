@@ -26,6 +26,6 @@ router.post(
   registerOrganization
 );
 router.post('/auth/login', loginUser);
-router.post('/auth/logout', logoutUser);
+router.post('/auth/logout', authenticate, logoutUser);
 
 export default router;

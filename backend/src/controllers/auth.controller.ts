@@ -3,12 +3,32 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User, UserDocument } from '../models/User';
 
-export const logoutUser = (req: Request, res: Response) => {
-  res.setHeader('Authorization', '');
+export const logoutUser = async (
+  req: Request,
+  res: Response
+) => {
+  const userId = req.user?._id;
 
-  return res.status(200).json({
-    message: 'User logged out successfully',
-  });
+  try {
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        message: 'User not found',
+      });
+    }
+
+    res.setHeader('Authorization', '');
+
+    return res.status(200).json({
+      message: 'User logged out successfully',
+    });
+  } catch (error) {
+    console.error('Error logging out user:', error);
+    return res.status(500).json({
+      message: 'Failed to log out user',
+    });
+  }
 };
 
 export const getAllUsers = async (

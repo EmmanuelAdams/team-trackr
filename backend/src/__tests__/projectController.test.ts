@@ -82,8 +82,6 @@ describe('Project Routes', () => {
   });
 
   it('should create a new project for authorized CEO user', async () => {
-    // `Bearer ${mockToken}`
-
     const response = await request(app)
       .post('/api/v1/projects/new')
       .set('Authorization', `Bearer ${mockToken}`)
