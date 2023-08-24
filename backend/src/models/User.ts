@@ -1,7 +1,7 @@
-import { model, Schema, Document } from 'mongoose';
+import { model, Schema, Document } from "mongoose";
 
 interface Availability {
-  status: 'Available' | 'Not Available';
+  status: "Available" | "Not Available";
   reason?: string;
   nextAvailability?: Date;
 }
@@ -10,10 +10,10 @@ export interface UserDocument extends Document {
   name: string;
   password: string;
   email: string;
-  level: 'Junior' | 'Mid-level' | 'Senior' | 'CEO';
+  level: "Junior" | "Mid-level" | "Senior" | "CEO";
   yearsOfWork: number;
   availability: Availability;
-  userType: 'Employee' | 'Organization';
+  userType: "Employee" | "Organization";
   organizationName?: string;
   employees?: string[];
 }
@@ -35,14 +35,13 @@ const userSchema = new Schema<UserDocument>({
     required: true,
     unique: true,
     validate: {
-      validator: (value: string) =>
-        /\S+@\S+\.\S+/.test(value),
-      message: 'Invalid email format',
+      validator: (value: string) => /\S+@\S+\.\S+/.test(value),
+      message: "Invalid email format",
     },
   },
   level: {
     type: String,
-    enum: ['Junior', 'Mid-level', 'Senior', 'CEO'],
+    enum: ["Junior", "Mid-level", "Senior", "CEO"],
     required: true,
   },
   yearsOfWork: { type: Number, required: true },
@@ -50,45 +49,41 @@ const userSchema = new Schema<UserDocument>({
     type: {
       status: {
         type: String,
-        enum: ['Available', 'Not Available'],
+        enum: ["Available", "Not Available"],
         required: true,
       },
       reason: {
         type: String,
         required: function (this: UserDocument) {
-          return (
-            this.availability?.status === 'Not Available'
-          );
+          return this.availability?.status === "Not Available";
         },
       },
       nextAvailability: {
         type: Date,
         required: function (this: UserDocument) {
-          return (
-            this.availability?.status === 'Not Available'
-          );
+          return this.availability?.status === "Not Available";
         },
       },
     },
   },
   userType: {
     type: String,
-    enum: ['Employee', 'Organization'],
+    enum: ["Employee", "Organization"],
     required: true,
   },
   organizationName: {
     type: String,
     required: function (this: UserDocument) {
-      return this.userType === 'Organization';
+      return this.userType === "Organization";
     },
   },
   employees: {
     type: [String],
     required: function (this: UserDocument) {
-      return this.userType === 'Organization';
+      return this.userType === "Organization";
     },
     default: [],
   },
 });
 
-export const User = model<UserDocument>('User', userSchema);
+export const User = model<UserDocument>("User", userSchema);

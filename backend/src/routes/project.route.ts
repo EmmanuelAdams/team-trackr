@@ -1,20 +1,21 @@
-import express from 'express';
-import { getAllProjects, createProject, getProject, updateProject, deleteProject } from '../controllers/project.controllers';
-
-
+import express from "express";
+import {
+  getAllProjects,
+  createProject,
+  getProject,
+  updateProject,
+  deleteProject,
+} from "../controllers/project.controllers";
+import taskRouter from "./task.route";
+import { protect } from "../middlewares/auth";
 
 const router = express.Router();
 
-router
-.route('/')
-.get(getAllProjects)
-.post(createProject);
+// Re-route into other resource routers
+router.use("/:projectId/tasks", taskRouter);
 
-router
-  .route('/:id')
-  .get(getProject)
-  .put(updateProject)
-  .delete(deleteProject);  
+router.route("/").get(getAllProjects).post(protect, createProject);
 
+router.route("/:id").get(getProject).put(updateProject).delete(deleteProject);
 
-export default router; 
+export default router;

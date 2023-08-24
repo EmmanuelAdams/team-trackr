@@ -1,31 +1,24 @@
-import express from 'express';
+import express from "express";
 import {
   createTask,
   getAllTasks,
-  getAllTasksInProject,
-  getTaskInProjectById,
+  getTask,
+  // getTaskInProjectById,
   updateTaskInProject,
   deleteTaskInProject,
-} from '../controllers/task.controller';
+} from "../controllers/task.controller";
+import advancedResults from "../middlewares/advancedResults";
 
-const router = express.Router();
+import { Task } from "../models/Task";
 
+const router = express.Router({ mergeParams: true });
 
-// Get all tasks (across all projects)
-router.get('/tasks', getAllTasks);
-// // Create a new task within a project
-// router.post('/:projectId/tasks', createTask);
+router.route("/").get(advancedResults(Task), getAllTasks).post(createTask);
 
-// Get all tasks within a project
-router.get('/:projectId/tasks', getAllTasksInProject);
-
-// // Get details of a specific task within a project
-// router.get('/:projectId/tasks/:taskId', getTaskInProjectById);
-
-// // Update a task within a project
-// router.put('/:projectId/tasks/:taskId', updateTaskInProject);
-
-// // Delete a task within a project
-// router.delete('/:projectId/tasks/:taskId', deleteTaskInProject);
+router
+  .route("/:id")
+  .get(getTask)
+  .put(updateTaskInProject)
+  .delete(deleteTaskInProject);
 
 export default router;

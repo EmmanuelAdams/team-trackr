@@ -7,10 +7,10 @@ export interface TaskDocument extends Document {
   title: string;
   description: string;
   dueDate: Date;
-  status: "Todo" | "InProgress" | "Done";
+  status: "Todo" | "InProgress" | "Done"; 
   priority: "Low" | "Medium" | "High";
   assignedTo: UserDocument["_id"]; // User ID of the assigned user
-  projectId: ProjectDocument["_id"]; // Project ID to which the task belongs
+  project: ProjectDocument["_id"]; // Project ID to which the task belongs
   comments: string[]; // Array of Comment IDs
   startDate: Date;
   endDate: Date;
@@ -31,19 +31,10 @@ const TaskSchema = new Schema<TaskDocument>({
     enum: ["Low", "Medium", "High"],
     default: "Medium",
   },
-  assignedTo: { type: Schema.Types.ObjectId, ref: "User", required: true },
-  projectId: { type: Schema.Types.ObjectId, ref: "Project", required: true },
+  project: { type: Schema.Types.ObjectId, ref: "Project", required: true },
   comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
 });
-
-// // Create the Task model
-// const Task = model<ITask>('Task', taskSchema);
-
-// export default Task;
-
-
-
 
 export const Task = model<TaskDocument>("Task", TaskSchema);

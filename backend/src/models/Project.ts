@@ -6,8 +6,9 @@ export interface ProjectDocument extends Document {
   name: string;
   description: string;
   assignedTo: UserDocument['_id'];
+  // user: UserDocument['_id'];
   startDate: Date;
-  tasks: TaskDocument['_id'];
+  // task: TaskDocument['_id'];
   endDate: Date;
 }
 
@@ -15,11 +16,15 @@ const projectSchema = new Schema<ProjectDocument>({
   name: { type: String, required: true },
   description: { type: String, required: true },
   assignedTo: {
-    type: Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId, 
     ref: 'User',
     required: true,
   },
-  tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }], // Reference to tasks using ObjectId
+  // user: {
+  //   type: Schema.Types.ObjectId,
+  //   ref: 'User',
+  //   required: true
+  // },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
 });
@@ -28,3 +33,11 @@ export const Project = model<ProjectDocument>(
   'Project',
   projectSchema
 );
+
+
+projectSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'project',
+  justOne: false
+});

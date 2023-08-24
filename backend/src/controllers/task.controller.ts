@@ -1,123 +1,130 @@
-import { Request, Response } from 'express';
-import {Task} from '../models/Task';
-import {Project} from '../models/Project';
+import { Request, Response, NextFunction } from "express";
+import { Task } from "../models/Task";
+import { Project } from "../models/Project";
+import ErrorResponse from "../utils/errorResponse";
+import asyncHandler from "../middlewares/async";
 
-
-
-
-
+// @desc      Get tasks
+// @route     GET /api/v1/tasks
+// @route     GET /api/v1/projects/:projectId/tasks
+// @access    Public
 // Get all tasks (across all projects)
-export const getAllTasks = async (req: Request, res: Response) => {
-  try {
-    const tasks = await Task.find().populate('project'); // Populate project details
+export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
+  const task = await Task.find();
 
-    res.status(200).json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch tasks' });
+  if (req.params.projectId) {
+    const tasks = await Task.find({ project: req.params.projectId });
+
+    return res.status(200).json({
+      success: true,
+      count: tasks.length,
+      data: tasks,
+    });
+  } else {
+    res.status(200).json({ data: task });
   }
-};
+});
 
-// Create a new task within a project
-export const createTask = async (req: Request, res: Response) => {
-  try {
-    const { projectId } = req.params;
-    const { title, description, dueDate, assignedTo } = req.body;
+// @desc      Add Task
+// @route     POST /api/v1/projects/:projectId/tasks
+// @access    Private
+export const createTask = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    req.body.project = req.params.projectId;
+    // req.body.user = req.user.id;
 
-    // Check if the project exists
-    const project = await Project.findById(projectId);
+    const project = await Project.findById(req.params.projectId);
+
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return next(
+        new ErrorResponse(
+          `No project with the id of ${req.params.projectId}`,
+          404
+        )
+      );
     }
 
-    const newTask = new Task({
-      title,
-      description,
-      dueDate,
-      assignedTo,
-      project: projectId,
+    const task = await Task.create(req.body);
+
+    res.status(200).json({
+      success: true,
+      data: task,
     });
-
-    const savedTask = await newTask.save();
-
-    // Add the task to the project's tasks array
-    project.tasks.push(savedTask._id);
-    await project.save();
-
-    res.status(201).json(savedTask);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create task' });
   }
-};
+);
 
 // Get all tasks within a project
-export const getAllTasksInProject = async (req: Request, res: Response) => {
-  try {
-    const { projectId } = req.params;
-
-    const tasks = await Task.find({ project: projectId }).populate('project');
-
-    res.status(200).json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch tasks' });
-  }
-};
-
-// Get details of a specific task within a project
-export const getTaskInProjectById = async (req: Request, res: Response) => {
-  const { projectId, taskId } = req.params;
-  try {
-    const task = await Task.findOne({ _id: taskId, project: projectId });
+// @desc      Get single task
+// @route     GET /api/v1/tasks/:id
+// @access    Public
+export const getTask = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const task = await Task.findById(req.params.id).populate({
+      path: "project",
+      select: "name description",
+    });
 
     if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+      return next(
+        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
+      );
     }
 
-    res.status(200).json(task);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch task' });
+    res.status(200).json({
+      success: true,
+      data: task,
+    });
   }
-};
+);
 
 // Update a task within a project
-export const updateTaskInProject = async (req: Request, res: Response) => {
-  const { projectId, taskId } = req.params;
-  try {
-    const updatedTask = await Task.findOneAndUpdate(
-      { _id: taskId, project: projectId },
-      { $set: req.body },
-      { new: true }
-    );
+export const updateTaskInProject = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    let task = await Task.findById(req.params.id);
 
-    if (!updatedTask) {
-      return res.status(404).json({ message: 'Task not found' });
+    if (!task) {
+      return next(
+        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
+      );
     }
 
-    res.status(200).json(updatedTask);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update task' });
+    task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!task) {
+      // Task.findByIdAndUpdate might return null if the task was not found
+      return next(
+        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
+      );
+    }
+
+    await task.save();
+
+    res.status(200).json({
+      success: true,
+      data: task,
+    });
   }
-};
+);
 
 // Delete a task within a project
-export const deleteTaskInProject = async (req: Request, res: Response) => {
-  const { projectId, taskId } = req.params;
-  try {
-    const deletedTask = await Task.findOneAndDelete({
-      _id: taskId,
-      project: projectId,
-    });
+export const deleteTaskInProject = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const task = await Task.findById(req.params.id);
 
-    if (!deletedTask) {
-      return res.status(404).json({ message: 'Task not found' });
+    if (!task) {
+      return next(
+        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
+      );
     }
 
-    // Remove the task ID from the project's tasks array
-    await Project.findByIdAndUpdate(projectId, {
-      $pull: { tasks: deletedTask._id },
-    });
+    await task.deleteOne();
 
-    res.status(200).json({ message: 'Task deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete task' });
+    res.status(200).json({
+      success: true,
+      data: {},
+    });
   }
-};
+);
