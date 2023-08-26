@@ -16,6 +16,10 @@ router.use("/:projectId/tasks", taskRouter);
 
 router.route("/").get(getAllProjects).post(protect, createProject);
 
-router.route("/:id").get(getProject).put(updateProject).delete(deleteProject);
+router
+  .route("/:id")
+  .get(getProject)
+  .put(protect, updateProject)
+  .delete(protect, deleteProject);
 
 export default router;

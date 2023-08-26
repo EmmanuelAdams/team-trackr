@@ -10,15 +10,17 @@ import {
 import advancedResults from "../middlewares/advancedResults";
 
 import { Task } from "../models/Task";
+import { protect } from "../middlewares/auth";
+
 
 const router = express.Router({ mergeParams: true });
 
-router.route("/").get(advancedResults(Task), getAllTasks).post(createTask);
+router.route("/").get(advancedResults(Task), getAllTasks).post(protect, createTask);
 
 router
   .route("/:id")
   .get(getTask)
-  .put(updateTaskInProject)
-  .delete(deleteTaskInProject);
-
+  .put(protect,updateTaskInProject)
+  .delete(protect,deleteTaskInProject);
+  
 export default router;
