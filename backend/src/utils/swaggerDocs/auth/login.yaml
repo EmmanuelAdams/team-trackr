@@ -19,6 +19,11 @@ paths:
       responses:
         '200':
           description: User logged in successfully
+          headers:
+            Authorization:
+              description: Bearer [TOKEN]
+              schema:
+                type: string
           content:
             application/json:
               schema:
@@ -28,12 +33,18 @@ paths:
                     type: string
                   user:
                     $ref: '#/definitions/User'
-                  token:
-                    type: string
         '400':
           description: Invalid credentials
+          content:
+            application/json:
+              example:
+                message: Invalid credentials
         '500':
           description: Failed to login user
+          content:
+            application/json:
+              example:
+                message: Failed to login user
 
 definitions:
   User:

@@ -37,10 +37,22 @@ paths:
       responses:
         '201':
           description: Employee registered successfully
+          content:
+            application/json:
+              example:
+                message: Employee registered successfully
         '400':
           description: User with this email already exists
+          content:
+            application/json:
+              example:
+                message: User with this email already exists
         '500':
           description: Failed to register employee
+          content:
+            application/json:
+              example:
+                message: Failed to register employee
 
   /api/v1/auth/register/organization:
     post:
@@ -71,7 +83,19 @@ paths:
       responses:
         '201':
           description: Organization registered successfully
+          content:
+            application/json:
+              example:
+                message: Organization registered successfully
         '400':
           description: User with this email already exists
+          content:
+            application/json:
+              example:
+                message: User with this email already exists
         '500':
           description: Failed to register organization
+          content:
+            application/json:
+              example:
+                message: Failed to register organization
