@@ -1,0 +1,63 @@
+paths:
+  /api/v1/users/{userId}:
+    get:
+      summary: Get a user by ID
+      description: Retrieve a user by their ID.
+      tags:
+        - User
+      parameters:
+        - name: userId
+          in: path
+          description: ID of the user to retrieve
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successfully retrieved user
+          content:
+            application/json:
+              schema:
+                $ref: '#/definitions/User'
+        '401':
+          description: Unauthorized - Please provide a valid token
+          content:
+            application/json:
+              example:
+                message: Token missing or invalid
+        '403':
+          description: Forbidden - You are not authorized to access this resource
+          content:
+            application/json:
+              example:
+                message: You are not authorized to perform this action
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                message: User not found
+        '500':
+          description: Failed to fetch user
+          content:
+            application/json:
+              example:
+                message: An error occurred while fetching the user.
+
+definitions:
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      level:
+        type: string
+      yearsOfWork:
+        type: number
+      organizationName:
+        type: string
+      userType:
+        type: string

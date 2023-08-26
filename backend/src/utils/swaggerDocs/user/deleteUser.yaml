@@ -1,0 +1,58 @@
+paths:
+  /api/v1/users/{userId}/delete:
+    delete:
+      summary: Delete a user
+      description: Delete a user by their ID.
+      tags:
+        - User
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: Authorization
+          in: header
+          description: Bearer token for authentication
+          example: Bearer [TOKEN]
+          required: true
+          type: string
+        - name: userId
+          in: path
+          description: ID of the user to delete
+          required: true
+          type: string
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              example:
+                message: User deleted successfully
+        '401':
+          description: Unauthorized - Please provide a valid token
+          content:
+            application/json:
+              example:
+                message: Token missing or invalid
+        '403':
+          description: Forbidden - You are not authorized to access this resource
+          content:
+            application/json:
+              example:
+                message: You are not authorized to perform this action
+        '404':
+          description: User not found
+          content:
+            application/json:
+              example:
+                message: User not found
+        '500':
+          description: Failed to delete user
+          content:
+            application/json:
+              example:
+                message: An error occurred while deleting the user.
+
+securityDefinitions:
+  BearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

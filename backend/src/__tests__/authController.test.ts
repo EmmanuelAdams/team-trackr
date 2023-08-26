@@ -378,7 +378,6 @@ describe('Logout Route', () => {
   });
 
   it('should handle errors during logging out', async () => {
-    // Mock an error scenario by manipulating the findById function
     jest
       .spyOn(User, 'findById')
       .mockRejectedValue(new Error('Test error'));

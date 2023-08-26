@@ -1,0 +1,41 @@
+paths:
+  /api/v1/users:
+    get:
+      summary: Get all users
+      description: Retrieve a list of all users.
+      tags:
+        - User
+      responses:
+        '200':
+          description: Successfully retrieved users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/definitions/User'
+        '500':
+          description: Failed to fetch users
+          content:
+            application/json:
+              example:
+                message: An error occurred while fetching users.
+
+definitions:
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      level:
+        type: string
+      yearsOfWork:
+        type: number
+      organizationName:
+        type: string
+      userType:
+        type: string

@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import authRoutes from './routes/auth.route';
 import projectRoutes from './routes/project.route';
 import userRoutes from './routes/user.route';
@@ -16,6 +17,12 @@ const testPort = 5000;
 
 // Middleware
 app.use(express.json());
+app.use(
+  cors({
+    origin: 'http://localhost:8080/',
+    credentials: true,
+  })
+);
 app.use(morgan('dev'));
 app.use(
   '/api-docs',

@@ -14,6 +14,10 @@ const options = {
         description: 'Authentication endpoints',
       },
       {
+        name: 'User',
+        description: 'User endpoints',
+      },
+      {
         name: 'Project',
         description: 'Project endpoints',
       },
