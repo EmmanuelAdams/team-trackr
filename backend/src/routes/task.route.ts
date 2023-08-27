@@ -15,7 +15,8 @@ import { protect } from "../middlewares/auth";
 
 const router = express.Router({ mergeParams: true });
 
-router.route("/").get(advancedResults(Task), getAllTasks).post(protect, createTask);
+router.route("/")
+.get(advancedResults(Task), getAllTasks).post(protect, createTask);
 
 router
   .route("/:id")

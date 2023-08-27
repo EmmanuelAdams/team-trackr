@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 
-const mongoURL =
-  "mongodb+srv://samuel:fapdollars@cluster0.mqidkcu.mongodb.net/?retryWrites=true&w=majority";
+const mongoURL = process.env.MONGO_URI
 
 if (!mongoURL) {
   console.error("Error: MongoDB connection URI not found in .env file.");

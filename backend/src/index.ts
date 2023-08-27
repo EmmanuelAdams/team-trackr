@@ -8,13 +8,14 @@ import errorHandler from './middlewares/error'
 import swaggerSpec from "./utils/swaggerSpec";
 import morgan from "morgan";
 
-dotenv.config();
+// dotenv.config();
+dotenv.config({ path: './config/config.env' }); 
 require("./db");
 
 const app = express();
 const port = process.env.PORT || 4000;
 
-// Middleware
+// Middleware 
 app.use(express.json());
 app.use(morgan("dev"));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

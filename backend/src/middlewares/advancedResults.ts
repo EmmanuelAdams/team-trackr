@@ -1,24 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
-import { Model} from 'mongoose';
-import { TaskDocument } from '../models/Task';
+
+
 
 
 
 // Define an interface to extend the Response type
 interface CustomResponse extends Response {
-    advancedResults?: {
-      success: boolean;
-      count: number;
-      pagination?: {
-        next?: { page: number; limit: number };
-        prev?: { page: number; limit: number };
-      };
-      data: any;
-    };
+    advancedResults?: any
   }
 
 
-const advancedResults = (model: Model<TaskDocument>, populate?: string) => async (
+const advancedResults = (model: any, populate?: any) => async (
   req: Request,
   res: CustomResponse, // Use the custom interface here
   next: NextFunction
@@ -43,22 +35,29 @@ const advancedResults = (model: Model<TaskDocument>, populate?: string) => async
   // Finding resource
   query = model.find(JSON.parse(queryStr));
 
-//   // Select Fields
-//   if (req.query.select) {
-//     const fields = req.query.select.split(',').join(' ');
-//     query = query.select(fields);
-//   }
+  // Select Fields
+  if (req.query.select === "string") {
+    const fields = req.query.select.split(',').join(' ');
+    query = query.select(fields);
+  }
 
-//   // Sort
-//   if (req.query.sort) {
-//     const sortBy = req.query.sort.split(',').join(' ');
-//     query = query.sort(sortBy);
-//   } else {
-//     query = query.sort('-createdAt');
-//   }
+  // Sort
+  if (typeof req.query.sort === 'string') {
+    const sortBy = req.query.sort.split(',').join(' ');
+    query = query.sort(sortBy);
+  } else {
+    query = query.sort('-createdAt');
+  }
+  
 
+    // Pagination
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 25;    
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const total = await model.countDocuments(JSON.parse(queryStr));
 
-//   query = query.skip(startIndex).limit(limit);
+  query = query.skip(startIndex).limit(limit);
 
   if (populate) {
     query = query.populate(populate);
@@ -67,21 +66,35 @@ const advancedResults = (model: Model<TaskDocument>, populate?: string) => async
   // Executing query
   const results = await query;
 
+ 
 
 
 
 
-//   if (startIndex > 0) {
-//     pagination.prev = {
-//       page: page - 1,
-//       limit,
-//     };
-//   }
+   // Pagination result
+  const pagination: {
+    next?: { page: number; limit: number };
+    prev?: { page: number; limit: number };
+  } = {};
+  
+  if (endIndex < total) {
+    pagination.next = {
+      page: page + 1,
+      limit
+    };
+  }
+  
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: page - 1,
+      limit
+    };
+  }
 
   res.advancedResults = {
     success: true,
     count: results.length,
-    // pagination,
+    pagination,
     data: results,
   };
 

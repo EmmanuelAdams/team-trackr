@@ -5,8 +5,7 @@ import { TaskDocument } from './Task';
 export interface ProjectDocument extends Document {
   name: string;
   description: string;
-  assignedTo: UserDocument['_id'];
-  // user: UserDocument['_id'];
+  user: UserDocument['_id'];
   startDate: Date;
   // task: TaskDocument['_id'];
   endDate: Date;
@@ -15,19 +14,29 @@ export interface ProjectDocument extends Document {
 const projectSchema = new Schema<ProjectDocument>({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  assignedTo: {
-    type: Schema.Types.ObjectId, 
+  user: {
+    type: Schema.Types.ObjectId,
     ref: 'User',
-    required: true,
+    required: true
   },
-  // user: {
-  //   type: Schema.Types.ObjectId,
-  //   ref: 'User',
-  //   required: true
-  // },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
+},
+
+{
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+ }
+ );
+
+ projectSchema.virtual('tasks', {
+  ref: 'Task',
+  localField: '_id',
+  foreignField: 'project',
+  justOne: false
 });
+
+
 
 export const Project = model<ProjectDocument>(
   'Project',
@@ -35,9 +44,3 @@ export const Project = model<ProjectDocument>(
 );
 
 
-projectSchema.virtual('tasks', {
-  ref: 'Task',
-  localField: '_id',
-  foreignField: 'project',
-  justOne: false
-});

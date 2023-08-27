@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { User, UserDocument } from "../models/User";
+import { User } from "../models/User";
 import ErrorResponse from "../utils/errorResponse";
 import asyncHandler from "../middlewares/async";
 
@@ -13,7 +13,7 @@ export const protect =  asyncHandler(async (
 ) => {
   // Define the JwtPayload interface
   interface JwtPayload {
-    id: string; // You might have additional properties here
+    id: string;
   }
 
   let token;

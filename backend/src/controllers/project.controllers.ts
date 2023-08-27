@@ -1,23 +1,20 @@
 import { Request, Response, NextFunction } from "express";
 import { Project, ProjectDocument } from "../models/Project";
 import ErrorResponse from "../utils/errorResponse";
+import advancedResults from "../middlewares/advancedResults";
 import asyncHandler from "../middlewares/async";
 
 //Get all projects
 export const getAllProjects = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const projects = await Project.find();
-      res.status(200).json(projects);
-    } catch (error) {
-      return next(new ErrorResponse(`Failed to fetch projects`, 404));
-    }
+  async (req: Request, res: any, next: NextFunction) => {
+    res.status(200).json(res.advancedResults);
   }
 );
 
 // Create a new project
 export const createProject = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
+
     try {
       const { name, description, assignedTo, startDate, endDate } = req.body;
       const newProject = new Project({

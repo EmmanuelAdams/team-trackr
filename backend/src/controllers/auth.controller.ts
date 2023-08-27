@@ -93,18 +93,7 @@ export const registerEmployee = asyncHandler(
         userType: "Employee",
       };
 
-      // Generate JWT token
-      const secretKey = "qwert@4321";
-
-      // const options = {
-      //   expiresIn: '7d',
-      // };
-      // const token = jwt.sign(
-      //   secretKey,
-      //   { expiresIn: '7d' }
-      // );
-
-      // const token = jwt.sign(secretKey, options);
+    
 
       const createdUser = await User.create(newUser as UserDocument);
 
