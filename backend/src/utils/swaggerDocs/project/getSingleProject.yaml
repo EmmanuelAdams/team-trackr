@@ -6,14 +6,8 @@ paths:
       tags:
         - Project
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       parameters:
-        - name: Authorization
-          in: header
-          description: Bearer token for authentication
-          example: Bearer [TOKEN]
-          required: true
-          type: string
         - name: projectId
           in: path
           description: ID of the project to retrieve
@@ -76,9 +70,3 @@ definitions:
       endDate:
         type: string
         format: date-time
-
-securityDefinitions:
-  BearerAuth:
-    type: apiKey
-    name: Authorization
-    in: header

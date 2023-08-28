@@ -28,4 +28,4 @@ Thumbs.db
 *.bundle.js
 *.min.js
 
-separate user route from auth routes and authenticate
+*.txt

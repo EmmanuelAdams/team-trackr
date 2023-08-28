@@ -22,6 +22,20 @@ const options = {
         description: 'Project endpoints',
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
   },
   apis: ['./src/utils/swaggerDocs/**/*.yaml'],
 };

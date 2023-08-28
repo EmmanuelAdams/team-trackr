@@ -5,6 +5,7 @@ paths:
       description: Retrieve a list of all users.
       tags:
         - User
+      security: []
       responses:
         '200':
           description: Successfully retrieved users

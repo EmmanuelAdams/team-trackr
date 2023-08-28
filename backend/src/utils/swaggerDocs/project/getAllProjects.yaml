@@ -5,6 +5,7 @@ paths:
       description: Retrieve all projects
       tags:
         - Project
+      security: []
       responses:
         '200':
           description: Successfully retrieved all projects

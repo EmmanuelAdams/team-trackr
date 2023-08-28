@@ -5,6 +5,7 @@ paths:
       description: Retrieve a user by their ID.
       tags:
         - User
+      security: []
       parameters:
         - name: userId
           in: path

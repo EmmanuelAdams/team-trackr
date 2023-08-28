@@ -5,6 +5,7 @@ paths:
       description: Login user with the provided details.
       tags:
         - Auth
+      security: []
       requestBody:
         required: true
         content:
@@ -33,7 +34,7 @@ paths:
                     type: string
                   user:
                     $ref: '#/definitions/User'
-        '400':
+        '401':
           description: Invalid credentials
           content:
             application/json:

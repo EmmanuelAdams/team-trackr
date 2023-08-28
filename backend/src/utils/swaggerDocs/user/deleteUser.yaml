@@ -5,15 +5,7 @@ paths:
       description: Delete a user by their ID.
       tags:
         - User
-      security:
-        - BearerAuth: []
       parameters:
-        - name: Authorization
-          in: header
-          description: Bearer token for authentication
-          example: Bearer [TOKEN]
-          required: true
-          type: string
         - name: userId
           in: path
           description: ID of the user to delete
@@ -50,9 +42,3 @@ paths:
             application/json:
               example:
                 message: An error occurred while deleting the user.
-
-securityDefinitions:
-  BearerAuth:
-    type: http
-    scheme: bearer
-    bearerFormat: JWT

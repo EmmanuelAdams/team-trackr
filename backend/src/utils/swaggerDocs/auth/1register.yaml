@@ -5,6 +5,7 @@ paths:
       description: Register a new employee with the provided details.
       tags:
         - Auth
+      security: []
       requestBody:
         required: true
         content:
@@ -60,6 +61,7 @@ paths:
       description: Register a new organization with the provided details.
       tags:
         - Auth
+      security: []
       requestBody:
         required: true
         content:

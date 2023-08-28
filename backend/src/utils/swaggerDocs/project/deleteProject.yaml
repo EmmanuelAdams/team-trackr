@@ -6,17 +6,11 @@ paths:
       tags:
         - Project
       security:
-        - BearerAuth: []
+        - bearerAuth: []
       parameters:
         - name: projectId
           in: path
           description: ID of the project to be deleted
-          required: true
-          type: string
-        - name: Authorization
-          in: header
-          example: Bearer [TOKEN]
-          description: Bearer token for authentication
           required: true
           type: string
       responses:
@@ -44,9 +38,3 @@ paths:
             application/json:
               example:
                 message: An error occurred while deleting the project.
-
-securityDefinitions:
-  BearerAuth:
-    type: apiKey
-    name: Authorization
-    in: header
