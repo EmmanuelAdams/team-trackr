@@ -3,12 +3,14 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/auth.route';
 import projectRoutes from './routes/project.route';
+import taskRoutes from './routes/task.route';
 import userRoutes from './routes/user.route';
 import swaggerUi from 'swagger-ui-express';
+import errorHandler from './middlewares/error'
 import swaggerSpec from './utils/swaggerSpec';
 import morgan from 'morgan';
 
-dotenv.config();
+dotenv.config({ path: './config/config.env' });
 require('./db');
 
 const app = express();
@@ -34,6 +36,9 @@ app.use(
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/projects', projectRoutes);
+app.use("/api/v1/tasks", taskRoutes);
+
+app.use(errorHandler);
 
 const port =
   process.env.NODE_ENV === 'test' ? testPort : serverPort;
