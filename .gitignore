@@ -2,8 +2,10 @@
 node_modules/
 build/
 dist/
+config/
 
 # Files
+config.env
 .env
 .env.*
 *.log
