@@ -28,7 +28,7 @@ router.get(
 );
 router.get('/:id', protect, authenticate, getProject);
 router.patch('/:id/update', protect, authenticate, updateProject);
-router.post('/new', authenticate, createProject);
+router.post('/new',  authenticate, createProject);
 router.delete('/:id/delete', protect, authenticate, deleteProject);
 
 export default router;

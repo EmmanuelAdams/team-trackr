@@ -56,21 +56,33 @@ export const loginUser = async (
       });
     }
 
-       // Generate JWT token
-       const secretKey = process.env.SECRET_KEY || "qwert@4321";
-       const token = jwt.sign({ userId: existingUser._id }, secretKey, {
-         expiresIn: "7d",
-       });
-   
-       return res.status(200).json({
-         message: "User logged in successfully",
-         user: existingUser,
-         token: token,
-       });
-     } catch (error) {
-       console.error("Error logging in user:", error);
-       return res.status(500).json({ message: "Internal server error" });
-     }
+        const secretKey =
+      process.env.SECRET_KEY || 'qwert@4321';
+
+    const tokenPayload = {
+      userId: existingUser._id,
+      userType: existingUser.userType,
+      level: existingUser.level,
+    };
+
+    const token = jwt.sign(tokenPayload, secretKey, {
+      expiresIn: '7d',
+    });
+
+    return res
+      .status(200)
+      .header('Authorization', `Bearer ${token}`)
+      .json({
+        message: 'User logged in successfully',
+        user: existingUser,
+        token: token
+      });
+  } catch (error) {
+    console.error('Error logging in user:', error);
+    return res
+      .status(500)
+      .json({ message: 'Failed to login user' });
+  }
 };
 
 export const registerEmployee = async (

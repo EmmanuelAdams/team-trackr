@@ -19,7 +19,7 @@ router.route("/")
 
 router
   .route("/:id")
-  .get(getTask)
+  .get(protect, getTask)
   .put(protect,updateTaskInProject)
   .delete(protect,deleteTaskInProject);
   

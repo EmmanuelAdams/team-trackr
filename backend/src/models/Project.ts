@@ -6,7 +6,6 @@ export interface ProjectDocument extends Document {
   name: string;
   description: string;
   createdBy: UserDocument['_id'];
-  // tasks: TaskDocument['_id'][];
   startDate: Date;
   endDate: Date;
 }
@@ -24,9 +23,8 @@ const projectSchema = new Schema<ProjectDocument>({
     ref: 'User',
     required: true,
   },
-  // tasks: [{ type: Schema.Types.ObjectId, ref: 'Task' }],
   startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
+  endDate: { type: Date},
 },
 {
   toJSON: { virtuals: true },
