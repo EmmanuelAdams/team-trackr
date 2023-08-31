@@ -81,13 +81,10 @@ export const createProject = async (
       });
     }
 
-    const {
-      name,
-      description,
-      createdBy,
-      startDate,
-      endDate,
-    } = req.body;
+    const createdBy = req.user?._id;
+
+    const { name, description, startDate, endDate } =
+      req.body;
     const newProject = new Project({
       name,
       description,
