@@ -56,32 +56,21 @@ export const loginUser = async (
       });
     }
 
-    const secretKey =
-      process.env.SECRET_KEY || 'qwert@4321';
-
-    const tokenPayload = {
-      userId: existingUser._id,
-      userType: existingUser.userType,
-      level: existingUser.level,
-    };
-
-    const token = jwt.sign(tokenPayload, secretKey, {
-      expiresIn: '7d',
-    });
-
-    return res
-      .status(200)
-      .header('Authorization', `Bearer ${token}`)
-      .json({
-        message: 'User logged in successfully',
-        user: existingUser,
-      });
-  } catch (error) {
-    console.error('Error logging in user:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to login user' });
-  }
+       // Generate JWT token
+       const secretKey = process.env.SECRET_KEY || "qwert@4321";
+       const token = jwt.sign({ userId: existingUser._id }, secretKey, {
+         expiresIn: "7d",
+       });
+   
+       return res.status(200).json({
+         message: "User logged in successfully",
+         user: existingUser,
+         token: token,
+       });
+     } catch (error) {
+       console.error("Error logging in user:", error);
+       return res.status(500).json({ message: "Internal server error" });
+     }
 };
 
 export const registerEmployee = async (
@@ -181,7 +170,7 @@ export const registerEmployee = async (
     console.error('Error registering employee:', error);
     return res
       .status(500)
-      .json({ message: 'Failed to register emoloyee' });
+      .json({ message: 'Failed to register employee' });
   }
 };
 
@@ -221,7 +210,7 @@ export const registerOrganization = async (
       organizationName,
       userType: 'Organization',
     };
-
+ 
     const createdUser = await User.create(
       newUser as UserDocument
     );
@@ -234,6 +223,6 @@ export const registerOrganization = async (
     console.error('Error registering organization:', error);
     return res
       .status(500)
-      .json({ message: 'Failed to register organization' });
+      .json({ message: 'Failed to register organization' }); 
   }
 };

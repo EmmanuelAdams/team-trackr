@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
+import advancedResults from "../middlewares/advancedResults";
+import asyncHandler from "../middlewares/async";
 
 export const validateProjectInputsLength = (
   req: Request,
@@ -26,20 +28,12 @@ export const validateProjectInputsLength = (
   next();
 };
 
-export const getAllProjects = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const projects = await Project.find();
-    res.status(200).json(projects);
-  } catch (error) {
-    console.error('Error fetching all projects:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to fetch all projects' });
+//Get all projects
+export const getAllProjects = asyncHandler(
+  async (req: Request, res: any, next: NextFunction) => {
+    res.status(200).json(res.advancedResults);
   }
-};
+);
 
 export const getAllOrganizationProjects = async (
   req: Request,
@@ -48,7 +42,7 @@ export const getAllOrganizationProjects = async (
   try {
     const organizationId = req.user?._id;
 
-    const projects = await Project.find({
+    const projects = await Project.find({ 
       createdBy: organizationId,
     });
 

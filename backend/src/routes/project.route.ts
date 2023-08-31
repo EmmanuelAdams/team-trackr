@@ -7,19 +7,28 @@ import {
   deleteProject,
   getAllOrganizationProjects,
 } from '../controllers/project.controller';
-
-const router = express.Router();
+import taskRouter from "./task.route";
+import { protect } from "../middlewares/auth";
+import advancedResults from "../middlewares/advancedResults";
+import { Project, ProjectDocument } from "../models/Project";
 import authenticate from '../middlewares/authentication';
+const router = express.Router();
 
-router.get('/', getAllProjects);
+
+// Re-route into other resource routers
+router.use("/:projectId/tasks", taskRouter);
+
+router.route("/")
+.get(advancedResults(Project, 'tasks'), getAllProjects)
+
 router.get(
   '/organization',
   authenticate,
-  getAllOrganizationProjects
+  getAllOrganizationProjects  
 );
-router.get('/:id', authenticate, getProject);
-router.patch('/:id/update', authenticate, updateProject);
+router.get('/:id', protect, authenticate, getProject);
+router.patch('/:id/update', protect, authenticate, updateProject);
 router.post('/new', authenticate, createProject);
-router.delete('/:id/delete', authenticate, deleteProject);
+router.delete('/:id/delete', protect, authenticate, deleteProject);
 
 export default router;

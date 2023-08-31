@@ -8,7 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './utils/swaggerSpec';
 import morgan from 'morgan';
 
-dotenv.config();
+dotenv.config({ path: './config/config.env' });
 require('./db');
 
 const app = express();

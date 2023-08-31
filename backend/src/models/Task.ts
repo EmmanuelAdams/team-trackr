@@ -1,34 +1,35 @@
-import { Schema, model } from 'mongoose';
-import { ProjectDocument } from './Project';
-import { UserDocument } from './User';
+import { Document, Schema, model } from "mongoose";
+import { UserDocument } from "./User";
+import { ProjectDocument } from "./Project";
 
+// Define an interface for the Task
 export interface TaskDocument extends Document {
-  _id: string;
   title: string;
   description: string;
   dueDate: Date;
-  status: 'Not Started' | 'In Progress' | 'Completed';
-  priority: 'Low' | 'Medium' | 'High';
-  assignedTo: UserDocument['_id'][];
-  projectId: ProjectDocument['_id'];
-  comments: string[];
+  status: "Todo" | "InProgress" | "Done"; 
+  priority: "Low" | "Medium" | "High";
+  assignedTo: UserDocument["_id"][]; // User ID of the assigned user
+  project: ProjectDocument["_id"]; // Project ID to which the task belongs
+  comments: string[]; // Array of Comment IDs
   startDate: Date;
   endDate: Date;
 }
 
+// Define the Task schema
 const TaskSchema = new Schema<TaskDocument>({
   title: { type: String, required: true },
   description: { type: String, required: true },
   dueDate: { type: Date, required: true },
   status: {
     type: String,
-    enum: ['Not Started', 'In Progress', 'Completed'],
-    default: 'Not Started',
+    enum: ["Todo", "InProgress", "Done"],
+    default: "Todo",
   },
   priority: {
     type: String,
-    enum: ['Low', 'Medium', 'High'],
-    default: 'Medium',
+    enum: ["Low", "Medium", "High"],
+    default: "Medium",
   },
   assignedTo: [
     {
@@ -37,16 +38,10 @@ const TaskSchema = new Schema<TaskDocument>({
       required: true,
     },
   ],
-  projectId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Project',
-    required: true,
-  },
-  comments: [
-    { type: Schema.Types.ObjectId, ref: 'Comment' },
-  ],
+  project: { type: Schema.Types.ObjectId, ref: "Project", required: true },
+  comments: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
 });
 
-export const Task = model<TaskDocument>('Task', TaskSchema);
+export const Task = model<TaskDocument>("Task", TaskSchema);
