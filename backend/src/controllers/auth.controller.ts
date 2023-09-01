@@ -56,7 +56,7 @@ export const loginUser = async (
       });
     }
 
-    const secretKey =
+        const secretKey =
       process.env.SECRET_KEY || 'qwert@4321';
 
     const tokenPayload = {
@@ -75,6 +75,7 @@ export const loginUser = async (
       .json({
         message: 'User logged in successfully',
         user: existingUser,
+        token: token
       });
   } catch (error) {
     console.error('Error logging in user:', error);
@@ -181,7 +182,7 @@ export const registerEmployee = async (
     console.error('Error registering employee:', error);
     return res
       .status(500)
-      .json({ message: 'Failed to register emoloyee' });
+      .json({ message: 'Failed to register employee' });
   }
 };
 
@@ -221,7 +222,7 @@ export const registerOrganization = async (
       organizationName,
       userType: 'Organization',
     };
-
+ 
     const createdUser = await User.create(
       newUser as UserDocument
     );
@@ -234,6 +235,6 @@ export const registerOrganization = async (
     console.error('Error registering organization:', error);
     return res
       .status(500)
-      .json({ message: 'Failed to register organization' });
+      .json({ message: 'Failed to register organization' }); 
   }
 };
