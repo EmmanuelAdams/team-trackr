@@ -1,13 +1,13 @@
 paths:
-  /api/v1/auth/logout:
-    post:
-      summary: Logout user
-      description: Log out a logged-in user.
+  /api/v1/users/me:
+    get:
+      summary: Get logged-in user
+      description: Retrieve information about the logged-in user.
       tags:
-        - Auth
+        - User
       responses:
         '200':
-          description: User logged out successfully
+          description: Successfully retrieved user
           content:
             application/json:
               schema:
@@ -15,12 +15,11 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    description: Indicates if the log out was successful.
+                    description: Indicates if the get request was successful.
                     example: true
-                  message:
-                    type: string
-                    description: A message indicating the success of the log out.
-                    example: User logged out successfully
+                  user:
+                    $ref: '#/definitions/User'
+                    description: The user object.
         '401':
           description: Unauthorized - Please provide a valid token
           content:
@@ -36,9 +35,28 @@ paths:
                 success: false
                 error: User not found
         '422':
-          description: Failed to log out user
+          description: Failed to fetch user
           content:
             application/json:
               example:
                 success: false
-                error: Failed to log out user
+                error: An error occurred while fetching the user.
+
+definitions:
+  User:
+    type: object
+    properties:
+      _id:
+        type: string
+      name:
+        type: string
+      email:
+        type: string
+      level:
+        type: string
+      yearsOfWork:
+        type: number
+      organizationName:
+        type: string
+      userType:
+        type: string

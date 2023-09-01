@@ -1,0 +1,112 @@
+paths:
+  /api/v1/tasks/{taskId}/update:
+    patch:
+      summary: Update task in project
+      description: Update an existing task within a project.
+      tags:
+        - Task
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+          description: The ID of the task to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                dueDate:
+                  type: string
+                  format: date
+                status:
+                  type: string
+                priority:
+                  type: string
+                assignedTo:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Task updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the update was successful.
+                    example: true
+                  task:
+                    $ref: '#/definitions/Task'
+                    description: The updated task object.
+                  message:
+                    type: string
+                    description: A message indicating the success of the update.
+                    example: Task updated successfully
+        '400':
+          description: Task with the same name already exists or invalid request.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Task with the same name already exists
+        '403':
+          description: You are not authorized to perform this action.
+          content:
+            application/json:
+              example:
+                success: false
+                error: You are not authorized to perform this action
+        '404':
+          description: Task or Project not found.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Task not found
+        '422':
+          description: Failed to update task.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Failed to update task
+
+definitions:
+  Task:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: The unique identifier of the task.
+      title:
+        type: string
+        description: The title of the task.
+      description:
+        type: string
+        description: The description of the task.
+      dueDate:
+        type: string
+        format: date
+        description: The due date of the task (YYYY-MM-DD).
+      status:
+        type: string
+        description: The status of the task.
+      priority:
+        type: string
+        description: The priority of the task.
+      assignedTo:
+        type: array
+        items:
+          type: string
+        description: An array of user IDs to whom the task is assigned.

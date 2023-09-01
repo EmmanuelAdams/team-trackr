@@ -25,10 +25,13 @@ router.get(
   getProjectTasks
 );
 
-router
-  .route('/:id')
-  .get(authenticate, getTask)
-  .patch(authenticate, updateTaskInProject);
+router.route('/:id').get(authenticate, getTask);
+
+router.patch(
+  '/:id/update',
+  authenticate,
+  updateTaskInProject
+);
 
 router.delete(
   '/:id/delete',

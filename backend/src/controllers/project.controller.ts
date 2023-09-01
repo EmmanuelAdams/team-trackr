@@ -98,6 +98,7 @@ export const createProject = asyncHandler(
 
         const savedProject = await newProject.save();
         res.status(201).json({
+          success: true,
           project: savedProject,
           message: 'Project created successfully',
         });
@@ -113,29 +114,30 @@ export const createProject = asyncHandler(
 
 export const getProject = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   const projectId = req.params.id;
   try {
     if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return res
-        .status(400)
-        .json({ message: 'Invalid project ID' });
+      return next(
+        new ErrorResponse('Invalid project ID', 400)
+      );
     }
 
     const project = await Project.findById(projectId);
 
     if (!project) {
-      return res
-        .status(404)
-        .json({ message: 'Project not found' });
+      return next(
+        new ErrorResponse('Project not found', 404)
+      );
     }
-    res.status(200).json(project);
+    res.status(200).json({ success: true, project });
   } catch (error) {
     console.error('Error fetching project:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to fetch project' });
+    return next(
+      new ErrorResponse('Failed to fetch projects', 422)
+    );
   }
 };
 

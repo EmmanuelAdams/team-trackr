@@ -1,12 +1,10 @@
 paths:
-  /api/v1/projects/new:
+  /api/v1/projects/new-project:
     post:
       summary: Create a project
       description: Create a new project based on the provided details.
       tags:
         - Project
-      security:
-        - bearerAuth: []
       parameters:
         - name: Authorization
           in: header
@@ -25,31 +23,46 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/ProjectResponse'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the request was successful.
+                    example: true
+                  project:
+                    $ref: '#/definitions/ProjectResponse'
+                    description: The newly created project.
+                  message:
+                    type: string
+                    description: A message indicating the success of the project creation.
         '400':
           description: Bad request - Invalid project data provided
           content:
             application/json:
               example:
-                message: Invalid project data provided.
+                success: false
+                error: Invalid project data provided.
         '401':
           description: Unauthorized - Please provide a valid token
           content:
             application/json:
               example:
-                message: Token missing or invalid
+                success: false
+                error: Token missing or invalid
         '403':
           description: Forbidden - You are not authorized to create a project
           content:
             application/json:
               example:
-                message: You are not authorized to create a project.
-        '500':
+                success: false
+                error: You are not authorized to create a project.
+        '422':
           description: Failed to create project
           content:
             application/json:
               example:
-                message: An error occurred while creating the project.
+                success: false
+                error: An error occurred while creating the project.
 
 definitions:
   ProjectInput:
@@ -67,10 +80,10 @@ definitions:
         type: string
       startDate:
         type: string
-        format: date-time
-      endDate:
+        format: date
+      dueDate:
         type: string
-        format: date-time
+        format: date
 
   ProjectResponse:
     type: object
@@ -94,7 +107,7 @@ definitions:
         description: The organization ID that created the project
       startDate:
         type: string
-        format: date-time
+        format: date
       endDate:
         type: string
-        format: date-time
+        format: date

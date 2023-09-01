@@ -1,0 +1,73 @@
+paths:
+  /api/v1/tasks/project/{projectId}:
+    get:
+      summary: Get project tasks
+      description: Retrieve tasks associated with a specific project.
+      tags:
+        - Task
+      parameters:
+        - in: path
+          name: projectId
+          required: true
+          type: string
+          description: The ID of the project to retrieve tasks for.
+      responses:
+        '200':
+          description: Successfully retrieved project tasks.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the operation was successful.
+                    example: true
+                  count:
+                    type: integer
+                    description: The number of tasks associated with the project.
+                    example: 3
+                  data:
+                    type: array
+                    description: An array of task objects associated with the project.
+                    items:
+                      $ref: '#/definitions/Task'
+        '404':
+          description: Project not found.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Project not found
+        '422':
+          description: Failed to retrieve project tasks.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Failed to retrieve project tasks
+
+definitions:
+  Task:
+    type: object
+    properties:
+      _id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      dueDate:
+        type: string
+        format: date
+      status:
+        type: string
+      priority:
+        type: string
+        enum: [Low, Medium, High]
+      createdBy:
+        type: string
+      assignedTo:
+        type: array
+        items:
+          type: string

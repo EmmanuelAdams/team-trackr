@@ -23,7 +23,7 @@ router
   .route('/')
   .get(advancedResults(Project, 'tasks'), getAllProjects);
 
-router.post('/new', authenticate, createProject);
+router.post('/new-project', authenticate, createProject);
 
 router.get(
   '/organization',

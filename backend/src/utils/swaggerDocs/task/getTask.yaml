@@ -1,19 +1,20 @@
 paths:
-  /api/v1/projects/{projectId}:
+  /api/v1/tasks/{taskId}:
     get:
-      summary: Get a single project
-      description: Retrieve a project by its ID.
+      summary: Get task by ID
+      description: Retrieve task details by its unique ID.
       tags:
-        - Project
+        - Task
       parameters:
-        - name: projectId
-          in: path
-          description: ID of the project to retrieve
+        - in: path
+          name: taskId
           required: true
-          type: string
+          description: The unique ID of the task to retrieve.
+          schema:
+            type: string
       responses:
         '200':
-          description: Successfully retrieved project
+          description: Task details retrieved successfully.
           content:
             application/json:
               schema:
@@ -21,18 +22,18 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    description: Indicates if the request was successful.
+                    description: Indicates if the retrieval was successful.
                     example: true
-                  projects:
-                    items:
-                      $ref: '#/definitions/Project'
+                  data:
+                    $ref: '#/definitions/Task'
+                    description: The task object.
         '400':
-          description: Bad request - Invalid project ID
+          description: Bad request - Invalid task ID
           content:
             application/json:
               example:
                 success: false
-                error: Invalid project ID provided.
+                error: Invalid task ID provided.
         '401':
           description: Unauthorized - Please provide a valid token
           content:
@@ -48,36 +49,36 @@ paths:
                 success: false
                 error: You are not authorized to perform this action
         '404':
-          description: Project not found
+          description: Task not found
           content:
             application/json:
               example:
                 success: false
-                error: Project not found.
+                error: Task not found.
         '422':
-          description: Failed to fetch project
+          description: Failed to fetch task
           content:
             application/json:
               example:
                 success: false
-                error: An error occurred while fetching the project.
+                error: An error occurred while fetching the task.
 
 definitions:
-  Project:
+  Task:
     type: object
     properties:
       _id:
         type: string
+        description: The unique identifier of the task.
+      task:
+        $ref: '#/definitions/Project'
+        description: The project associated with the task.
       name:
         type: string
+        description: The name of the task.
       description:
         type: string
+        description: The description of the task.
       createdBy:
-        type: string
-        description: The organization ID that created the project
-      startDate:
-        type: string
-        format: date
-      endDate:
-        type: string
-        format: date
+        $ref: '#/definitions/User'
+        description: The user who created the task.

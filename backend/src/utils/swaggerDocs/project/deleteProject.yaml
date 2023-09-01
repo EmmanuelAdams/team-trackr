@@ -5,8 +5,6 @@ paths:
       description: Delete an existing project based on its ID.
       tags:
         - Project
-      security:
-        - bearerAuth: []
       parameters:
         - name: projectId
           in: path
@@ -19,22 +17,26 @@ paths:
           content:
             application/json:
               example:
+                success: true
                 message: Project deleted successfully
         '401':
           description: Unauthorized - Please provide a valid token
           content:
             application/json:
               example:
-                message: Token missing or invalid
+                success: false
+                error: Token missing or invalid
         '404':
           description: Not Found - Project not found
           content:
             application/json:
               example:
-                message: Project not found
-        '500':
+                success: false
+                error: Project not found
+        '422':
           description: Failed to delete project
           content:
             application/json:
               example:
-                message: An error occurred while deleting the project.
+                success: false
+                error: Failed to delete project

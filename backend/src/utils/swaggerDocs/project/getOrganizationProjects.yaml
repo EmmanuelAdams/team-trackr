@@ -5,35 +5,48 @@ paths:
       description: Retrieve all projects belonging to the requesting organization.
       tags:
         - Project
-      security:
-        - bearerAuth: []
       responses:
         '200':
           description: Successfully retrieved organization projects
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/definitions/Project'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the request was successful.
+                    example: true
+                  count:
+                    type: integer
+                    description: The number of projects in the response.
+                    example: 5
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Project'
+                    description: An array containing project objects.
         '401':
           description: Unauthorized - Please provide a valid token
           content:
             application/json:
               example:
-                message: Token missing or invalid
+                success: false
+                error: Token missing or invalid
         '403':
           description: Forbidden - You are not authorized to access this resource
           content:
             application/json:
               example:
-                message: You are not authorized to perform this action
-        '500':
+                success: false
+                error: You are not authorized to perform this action
+        '422':
           description: An error occurred while fetching organization projects
           content:
             application/json:
               example:
-                message: Failed to fetch all organization projects
+                success: false
+                error: Failed to fetch all organization projects
 
 definitions:
   Project:
@@ -50,7 +63,7 @@ definitions:
         description: The organization ID that created the project
       startDate:
         type: string
-        format: date-time
+        format: date
       endDate:
         type: string
-        format: date-time
+        format: date

@@ -1,24 +1,25 @@
 paths:
-  /api/v1/users/{userId}/delete:
+  /api/v1/tasks/{taskId}/delete:
     delete:
-      summary: Delete a user
-      description: Delete a user by their ID.
+      summary: Delete Task in Project
+      description: Delete a task in a project by its ID.
       tags:
-        - User
+        - Task
       parameters:
-        - name: userId
+        - name: taskId
           in: path
-          description: ID of the user to delete
           required: true
-          type: string
+          description: The ID of the task to be deleted.
+          schema:
+            type: string
       responses:
         '200':
-          description: User deleted successfully
+          description: Task deleted successfully.
           content:
             application/json:
               example:
                 success: true
-                message: User deleted successfully
+                message: Task deleted successfully
         '401':
           description: Unauthorized - Please provide a valid token
           content:
@@ -27,23 +28,23 @@ paths:
                 success: false
                 error: Token missing or invalid
         '403':
-          description: Forbidden - You are not authorized to access this resource
+          description: You are not authorized to perform this action.
           content:
             application/json:
               example:
                 success: false
                 error: You are not authorized to perform this action
         '404':
-          description: User not found
+          description: Task not found.
           content:
             application/json:
               example:
                 success: false
-                error: User not found
+                error: Task not found
         '422':
-          description: Failed to delete user
+          description: Failed to delete task.
           content:
             application/json:
               example:
                 success: false
-                error: An error occurred while deleting the user.
+                error: Failed to delete task

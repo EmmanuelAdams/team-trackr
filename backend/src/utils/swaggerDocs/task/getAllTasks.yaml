@@ -1,14 +1,14 @@
 paths:
-  /api/v1/users:
+  /api/v1/tasks:
     get:
-      summary: Get all users
-      description: Retrieve a list of all users.
+      summary: Get all tasks
+      description: Retrieve all tasks
       tags:
-        - User
+        - Task
       security: []
       responses:
         '200':
-          description: Successfully retrieved users
+          description: Successfully retrieved all tasks
           content:
             application/json:
               schema:
@@ -20,36 +20,43 @@ paths:
                     example: true
                   count:
                     type: integer
-                    description: The number of users in the response.
+                    description: The number of tasks in the response.
                     example: 5
-                  users:
+                  tasks:
                     type: array
                     items:
-                      $ref: '#/definitions/User'
-                    description: An array containing user objects.
+                      $ref: '#/definitions/Task'
+                    description: An array containing task objects.
         '422':
-          description: Failed to fetch users
+          description: An error occurred while fetching organization tasks
           content:
             application/json:
               example:
                 success: false
-                error: Failed to fetch all users.
+                error: Failed to fetch all tasks
 
 definitions:
-  User:
+  Task:
     type: object
     properties:
       _id:
         type: string
-      name:
+      title:
         type: string
-      email:
+      description:
         type: string
-      level:
+      assignedTo:
+        type: array
+        items:
+          type: string
+      createdBy:
         type: string
-      yearsOfWork:
-        type: number
-      organizationName:
+        description: The user ID that created the task
+      projectId:
         type: string
-      userType:
+      startDate:
         type: string
+        format: date
+      dueDate:
+        type: string
+        format: date

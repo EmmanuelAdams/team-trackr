@@ -21,6 +21,10 @@ const options = {
         name: 'Project',
         description: 'Project endpoints',
       },
+      {
+        name: 'Task',
+        description: 'Task endpoints',
+      },
     ],
     components: {
       securitySchemes: {

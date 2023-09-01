@@ -18,31 +18,43 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/definitions/User'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the get request was successful.
+                    example: true
+                  user:
+                    $ref: '#/definitions/User'
+                    description: The user object.
         '401':
           description: Unauthorized - Please provide a valid token
           content:
             application/json:
               example:
-                message: Token missing or invalid
+                success: false
+                error: Token missing or invalid
         '403':
           description: Forbidden - You are not authorized to access this resource
           content:
             application/json:
               example:
-                message: You are not authorized to perform this action
+                success: false
+                error: You are not authorized to perform this action
         '404':
           description: User not found
           content:
             application/json:
               example:
-                message: User not found
-        '500':
+                success: false
+                error: User not found
+        '422':
           description: Failed to fetch user
           content:
             application/json:
               example:
-                message: An error occurred while fetching the user.
+                success: false
+                error: An error occurred while fetching the user.
 
 definitions:
   User:

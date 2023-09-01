@@ -30,22 +30,35 @@ paths:
               schema:
                 type: object
                 properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the login was successful.
+                    example: true
                   message:
                     type: string
+                    description: A message indicating the success of the login.
+                    example: User logged in successfully
                   user:
                     $ref: '#/definitions/User'
+                    description: The user object.
+                  token:
+                    type: string
+                    description: The JWT token for authentication.
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         '401':
           description: Invalid credentials
           content:
             application/json:
               example:
-                message: Invalid credentials
-        '500':
+                success: false
+                error: Invalid credentials
+        '422':
           description: Failed to login user
           content:
             application/json:
               example:
-                message: Failed to login user
+                success: false
+                error: Failed to login user
 
 definitions:
   User:

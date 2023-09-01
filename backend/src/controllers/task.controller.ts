@@ -80,10 +80,7 @@ export const createTask = asyncHandler(
 
       if (!project) {
         return next(
-          new ErrorResponse(
-            `No project with the id of ${projectId}`,
-            404
-          )
+          new ErrorResponse('Project not found', 404)
         );
       }
 

@@ -12,15 +12,28 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/definitions/Project'
-        '500':
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the request was successful.
+                    example: true
+                  count:
+                    type: integer
+                    description: The number of projects in the response.
+                    example: 5
+                  projects:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Project'
+                    description: An array containing project objects.
+        '422':
           description: An error occurred while fetching organization projects
           content:
             application/json:
               example:
-                message: Failed to fetch all projects
+                success: false
+                error: Failed to fetch all projects
 
 definitions:
   Project:
@@ -37,7 +50,7 @@ definitions:
         description: The organization ID that created the project
       startDate:
         type: string
-        format: date-time
+        format: date
       endDate:
         type: string
-        format: date-time
+        format: date
