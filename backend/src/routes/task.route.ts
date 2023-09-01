@@ -1,26 +1,39 @@
-import express from "express";
+import express from 'express';
 import {
   createTask,
   getAllTasks,
   getTask,
   updateTaskInProject,
   deleteTaskInProject,
-} from "../controllers/task.controller";
-import advancedResults from "../middlewares/advancedResults";
+  getProjectTasks,
+} from '../controllers/task.controller';
+import advancedResults from '../middlewares/advancedResults';
+import authenticate from '../middlewares/authentication';
 
-import { Task } from "../models/Task";
-import { protect } from "../middlewares/auth";
-
+import { Task } from '../models/Task';
 
 const router = express.Router({ mergeParams: true });
 
-router.route("/")
-.get(advancedResults(Task), getAllTasks).post(protect, createTask);
+router
+  .route('/')
+  .get(advancedResults(Task), getAllTasks)
+  .post(authenticate, createTask);
+
+router.get(
+  '/project/:projectId',
+  advancedResults(Task),
+  getProjectTasks
+);
 
 router
-  .route("/:id")
-  .get(protect, getTask)
-  .put(protect,updateTaskInProject)
-  .delete(protect,deleteTaskInProject);
-  
+  .route('/:id')
+  .get(authenticate, getTask)
+  .patch(authenticate, updateTaskInProject);
+
+router.delete(
+  '/:id/delete',
+  authenticate,
+  deleteTaskInProject
+);
+
 export default router;

@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Project } from '../models/Project';
-import advancedResults from "../middlewares/advancedResults";
-import asyncHandler from "../middlewares/async";
+import asyncHandler from '../middlewares/async';
+import ErrorResponse from '../utils/errorResponse';
 
 export const validateProjectInputsLength = (
   req: Request,
@@ -11,14 +11,14 @@ export const validateProjectInputsLength = (
 ) => {
   const { name, description } = req.body;
 
-  if (name.length < 3 || name.length > 50) {
+  if (name?.length < 3 || name?.length > 50) {
     return res.status(400).json({
       message:
         'Project name length must be between 3 and 50 characters',
     });
   }
 
-  if (description.length < 3 || description.length > 50) {
+  if (description?.length < 3 || description?.length > 50) {
     return res.status(400).json({
       message:
         'Project description length must be between 3 and 300 characters',
@@ -28,88 +28,88 @@ export const validateProjectInputsLength = (
   next();
 };
 
-//Get all projects
 export const getAllProjects = asyncHandler(
   async (req: Request, res: any, next: NextFunction) => {
     res.status(200).json(res.advancedResults);
   }
 );
 
-export const getAllOrganizationProjects = async (
-  req: Request,
-  res: Response
-) => {
-  try {
+export const getAllOrganizationProjects = asyncHandler(
+  async (req: Request, res: Response) => {
     const organizationId = req.user?._id;
 
-    const projects = await Project.find({ 
+    const projects = await Project.find({
       createdBy: organizationId,
     });
 
-    res.status(200).json(projects);
-  } catch (error) {
-    console.error(
-      'Error fetching all organization projects:',
-      error
-    );
-    return res.status(500).json({
-      message: 'Failed to fetch all organization projects',
+    return res.status(200).json({
+      success: true,
+      count: projects.length,
+      projects,
     });
   }
-};
+);
 
-export const createProject = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    if (
-      (req.user?.userType !== 'Organization' &&
-        req.user?.userType !== 'Employee') ||
-      (req.user?.level !== 'CEO' &&
-        req.user?.level !== 'Senior')
-    ) {
-      return res.status(403).json({
-        message:
-          'You are not authorized to create a project',
-      });
-    }
-
-    const createdBy = req.user?._id;
-
-    const { name, description, startDate, endDate } =
-      req.body;
-    const newProject = new Project({
-      name,
-      description,
-      createdBy,
-      startDate,
-      endDate,
-    });
-
-    validateProjectInputsLength(req, res, async () => {
-      const existingProject = await Project.findOne({
-        name,
-      });
-      if (existingProject) {
-        return res.status(400).json({
-          message: 'Project with this name already exists',
-        });
+export const createProject = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      if (
+        (req.user?.userType !== 'Organization' &&
+          req.user?.userType !== 'Employee') ||
+        (req.user?.level !== 'CEO' &&
+          req.user?.level !== 'Senior')
+      ) {
+        return next(
+          new ErrorResponse(
+            'You are not authorized to create a project',
+            403
+          )
+        );
       }
 
-      const savedProject = await newProject.save();
-      res.status(201).json({
-        project: savedProject,
-        message: 'Project created successfully',
+      const createdBy = req.user?._id;
+
+      const { name, description, startDate, dueDate } =
+        req.body;
+      const newProject = new Project({
+        name,
+        description,
+        createdBy,
+        startDate,
+        dueDate,
       });
-    });
-  } catch (error) {
-    console.error('Error creating project:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to create project' });
+
+      validateProjectInputsLength(req, res, async () => {
+        const existingProject = await Project.findOne({
+          name,
+        });
+        if (existingProject) {
+          return next(
+            new ErrorResponse(
+              'Project with this name already exists',
+              400
+            )
+          );
+        }
+
+        const savedProject = await newProject.save();
+        res.status(201).json({
+          project: savedProject,
+          message: 'Project created successfully',
+        });
+      });
+    } catch (error) {
+      console.error('Error creating project:', error);
+      return next(
+        new ErrorResponse('Failed to create project', 422)
+      );
+    }
   }
-};
+);
 
 export const getProject = async (
   req: Request,
@@ -141,10 +141,50 @@ export const getProject = async (
 
 export const updateProject = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   const projectId = req.params.id;
   try {
+    const existingProjectWithSameTitle =
+      await Project.findOne({
+        name: req.body.name,
+        _id: { $ne: projectId },
+      });
+
+    if (existingProjectWithSameTitle) {
+      return next(
+        new ErrorResponse(
+          'Project with the same name already exists',
+          400
+        )
+      );
+    }
+
+    const existingProject = await Project.findById(
+      projectId
+    );
+
+    if (!existingProject) {
+      return next(
+        new ErrorResponse('Project not found', 404)
+      );
+    }
+
+    if (
+      !(
+        req.user?._id ===
+        existingProject.createdBy.toString()
+      )
+    ) {
+      return next(
+        new ErrorResponse(
+          'You are not authorized to perform this action',
+          403
+        )
+      );
+    }
+
     validateProjectInputsLength(req, res, async () => {
       const updatedProject =
         await Project.findByIdAndUpdate(
@@ -153,44 +193,58 @@ export const updateProject = async (
           { new: true }
         );
       if (!updatedProject) {
-        return res
-          .status(404)
-          .json({ message: 'Project not found' });
+        return next(
+          new ErrorResponse('Project not found', 404)
+        );
       }
+
       return res.status(200).json({
+        success: true,
         project: updatedProject,
         message: 'Project updated successfully',
       });
     });
   } catch (error) {
     console.error('Error updating project:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to update project' });
+    return next(
+      new ErrorResponse('Failed to update project', 422)
+    );
   }
 };
 
 export const deleteProject = async (
   req: Request,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
-  const projectId = req.params.id;
   try {
-    const deletedProject = await Project.findByIdAndDelete(
-      projectId
-    );
-    if (!deletedProject) {
-      return res
-        .status(404)
-        .json({ message: 'Project not found' });
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return next(
+        new ErrorResponse('Project not found', 404)
+      );
     }
-    res
-      .status(200)
-      .json({ message: 'Project deleted successfully' });
+
+    if (!(req.user?._id === project.createdBy.toString())) {
+      return next(
+        new ErrorResponse(
+          'You are not authorized to perform this action',
+          403
+        )
+      );
+    }
+
+    await project.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: 'Project deleted successfully',
+    });
   } catch (error) {
     console.error('Error deleting project:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to delete project' });
+    return next(
+      new ErrorResponse('Failed to delete project', 422)
+    );
   }
 };

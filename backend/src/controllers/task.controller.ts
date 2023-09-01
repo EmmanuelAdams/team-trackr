@@ -1,73 +1,156 @@
-import { Request, Response, NextFunction } from "express";
-import { Task } from "../models/Task";
-import { Project } from "../models/Project";
-import ErrorResponse from "../utils/errorResponse";
-import asyncHandler from "../middlewares/async";
+import { Request, Response, NextFunction } from 'express';
+import { Task } from '../models/Task';
+import { Project } from '../models/Project';
+import ErrorResponse from '../utils/errorResponse';
+import asyncHandler from '../middlewares/async';
+import { title } from 'process';
 
-// @desc      Get tasks
-// @route     GET /api/v1/tasks
-// @route     GET /api/v1/projects/:projectId/tasks
-// @access    Public
-// Get all tasks (across all projects)
-export const getAllTasks = asyncHandler(async (req: Request, res: Response) => {
-  const task = await Task.find();
+export const validateTaskInputsLength = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { title, description } = req.body;
 
-  if (req.params.projectId) {
-    const tasks = await Task.find({ project: req.params.projectId });
+  if (title?.length < 3 || title?.length > 50) {
+    return res.status(400).json({
+      message:
+        'Task title length must be between 3 and 50 characters',
+    });
+  }
+
+  if (description?.length < 3 || description?.length > 50) {
+    return res.status(400).json({
+      message:
+        'Task description length must be between 3 and 300 characters',
+    });
+  }
+
+  next();
+};
+
+export const getAllTasks = asyncHandler(
+  async (req: Request, res: Response) => {
+    const tasks = await Task.find();
+
+    res
+      .status(200)
+      .json({ count: tasks.length, data: tasks });
+  }
+);
+
+export const getProjectTasks = asyncHandler(
+  async (req: Request, res: Response) => {
+    const projectId = req.params.projectId;
+
+    const projectTasks = await Task.find({
+      project: projectId,
+    });
 
     return res.status(200).json({
       success: true,
-      count: tasks.length,
-      data: tasks,
+      count: projectTasks.length,
+      data: projectTasks,
     });
-  } else {
-    res.status(200).json({ data: task });
   }
-});
+);
 
-// @desc      Add Task
-// @route     POST /api/v1/projects/:projectId/tasks
-// @access    Private
 export const createTask = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    req.body.project = req.params.projectId;
-    // req.body.user = req.user.id;
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      if (
+        (req.user?.userType !== 'Organization' &&
+          req.user?.userType !== 'Employee') ||
+        (req.user?.level !== 'CEO' &&
+          req.user?.level !== 'Senior')
+      ) {
+        return res.status(403).json({
+          message:
+            'You are not authorized to create a task',
+        });
+      }
 
-    const project = await Project.findById(req.params.projectId);
+      const projectId = req.params.projectId;
 
-    if (!project) {
+      const project = await Project.findById(projectId);
+
+      if (!project) {
+        return next(
+          new ErrorResponse(
+            `No project with the id of ${projectId}`,
+            404
+          )
+        );
+      }
+
+      const createdBy = req.user?._id;
+
+      const {
+        title,
+        description,
+        assignedTo,
+        startDate,
+        dueDate,
+      } = req.body;
+      const newTask = new Task({
+        title,
+        description,
+        assignedTo,
+        project,
+        createdBy,
+        startDate,
+        dueDate,
+      });
+
+      validateTaskInputsLength(req, res, async () => {
+        const existingTask = await Task.findOne({
+          title,
+        });
+        if (existingTask) {
+          return next(
+            new ErrorResponse(
+              'Task with this title already exists',
+              400
+            )
+          );
+        }
+
+        const savedTask = await newTask.save();
+
+        res.status(201).json({
+          success: true,
+          data: savedTask,
+          message: 'Task created successfully',
+        });
+      });
+    } catch (error) {
+      console.error('Error creating task:', error);
       return next(
-        new ErrorResponse(
-          `No project with the id of ${req.params.projectId}`,
-          404
-        )
+        new ErrorResponse('Failed to create task', 422)
       );
     }
-
-    const task = await Task.create(req.body);
-
-    res.status(200).json({
-      success: true,
-      data: task,
-    });
   }
 );
 
-// Get all tasks within a project
-// @desc      Get single task
-// @route     GET /api/v1/tasks/:id
-// @access    Public
 export const getTask = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const task = await Task.findById(req.params.id).populate({
-      path: "project",
-      select: "name description",
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const task = await Task.findById(
+      req.params.id
+    ).populate({
+      path: 'project',
+      select: 'name description createdBy',
     });
 
     if (!task) {
-      return next(
-        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
-      );
+      return next(new ErrorResponse('Task not found', 404));
     }
 
     res.status(200).json({
@@ -77,56 +160,130 @@ export const getTask = asyncHandler(
   }
 );
 
-// Update a task within a project
 export const updateTaskInProject = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    let task = await Task.findById(req.params.id);
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const taskId = req.params.id;
 
-    if (!task) {
+    try {
+      const existingTaskWithSameTitle = await Task.findOne({
+        title: req.body.title,
+        _id: { $ne: taskId },
+      });
+
+      if (existingTaskWithSameTitle) {
+        return next(
+          new ErrorResponse(
+            'Task with the same name already exists',
+            400
+          )
+        );
+      }
+
+      const existingTask = await Task.findById(taskId);
+
+      if (!existingTask) {
+        return next(
+          new ErrorResponse('Task not found', 404)
+        );
+      }
+
+      const project = await Project.findById(
+        existingTask.project
+      );
+
+      if (!project) {
+        return next(
+          new ErrorResponse('Project not found', 404)
+        );
+      }
+
+      if (
+        !(
+          req.user?._id === existingTask.createdBy ||
+          (Array.isArray(existingTask.assignedTo) &&
+            existingTask.assignedTo.includes(
+              req.user?._id
+            )) ||
+          (project &&
+            project.createdBy.toString() === req.user?._id)
+        )
+      ) {
+        return next(
+          new ErrorResponse(
+            'You are not authorized to perform this action',
+            403
+          )
+        );
+      }
+
+      validateTaskInputsLength(req, res, async () => {
+        const savedUpdatedTask =
+          await Task.findByIdAndUpdate(
+            taskId,
+            { $set: req.body },
+            { new: true }
+          );
+
+        return res.status(200).json({
+          success: true,
+          task: savedUpdatedTask,
+          message: 'Task updated successfully',
+        });
+      });
+    } catch (error) {
+      console.error('Error updating task:', error);
       return next(
-        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
+        new ErrorResponse('Failed to update task', 422)
       );
     }
-
-    task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!task) {
-      // Task.findByIdAndUpdate might return null if the task was not found
-      return next(
-        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
-      );
-    }
-
-    await task.save();
-
-    res.status(200).json({
-      success: true,
-      data: task,
-    });
   }
 );
 
-
-// Delete a task within a project
 export const deleteTaskInProject = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const task = await Task.findById(req.params.id);
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const task = await Task.findById(req.params.id);
 
-    if (!task) {
+      if (!task) {
+        return next(
+          new ErrorResponse('Task not found', 404)
+        );
+      }
+
+      if (
+        !(
+          req.user?._id === task.createdBy.toString() ||
+          (Array.isArray(task.assignedTo) &&
+            task.assignedTo.includes(req.user?._id))
+        )
+      ) {
+        return next(
+          new ErrorResponse(
+            'You are not authorized to perform this action',
+            403
+          )
+        );
+      }
+
+      await task.deleteOne();
+
+      res.status(200).json({
+        success: true,
+        message: 'Task deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting task:', error);
       return next(
-        new ErrorResponse(`No task with the id of ${req.params.id}`, 404)
+        new ErrorResponse('Failed to delete task', 422)
       );
     }
-
-    await task.deleteOne();
-
-    res.status(200).json({
-      success: true,
-      data: {},
-    });
   }
 );
-

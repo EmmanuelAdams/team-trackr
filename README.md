@@ -33,7 +33,6 @@ To run TeamTrackr locally, follow these steps:
 - Express.js
 - MongoDB
 - React
-- GraphQL
 
 ## Getting Started
 
@@ -55,9 +54,5 @@ We welcome contributions from the community to enhance TeamTrackr. To contribute
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-## Acknowledgements
-
-Special thanks to [Samuel](https://github.com/Samuelfapohunda), [Pluralsight](https://www.pluralsight.com/) and [Udemy](https://www.udemy.com/) for providing valuable resources and learning materials.
 
 ---
