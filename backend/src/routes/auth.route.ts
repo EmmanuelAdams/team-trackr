@@ -1,3 +1,4 @@
+import { updatePassword } from './../controllers/auth.controller';
 import express from 'express';
 import {
   registerEmployee,
@@ -13,5 +14,6 @@ router.post('/register/employee', registerEmployee);
 router.post('/register/organization', registerOrganization);
 router.post('/login', loginUser);
 router.post('/logout', authenticate, logoutUser);
+router.put('/updatepassword', authenticate, updatePassword);
 
 export default router;

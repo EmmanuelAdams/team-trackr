@@ -112,141 +112,149 @@ export const createProject = asyncHandler(
   }
 );
 
-export const getProject = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const projectId = req.params.id;
-  try {
-    if (!mongoose.Types.ObjectId.isValid(projectId)) {
-      return next(
-        new ErrorResponse('Invalid project ID', 400)
-      );
-    }
-
-    const project = await Project.findById(projectId);
-
-    if (!project) {
-      return next(
-        new ErrorResponse('Project not found', 404)
-      );
-    }
-    res.status(200).json({ success: true, project });
-  } catch (error) {
-    console.error('Error fetching project:', error);
-    return next(
-      new ErrorResponse('Failed to fetch projects', 422)
-    );
-  }
-};
-
-export const updateProject = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  const projectId = req.params.id;
-  try {
-    const existingProjectWithSameTitle =
-      await Project.findOne({
-        name: req.body.name,
-        _id: { $ne: projectId },
-      });
-
-    if (existingProjectWithSameTitle) {
-      return next(
-        new ErrorResponse(
-          'Project with the same name already exists',
-          400
-        )
-      );
-    }
-
-    const existingProject = await Project.findById(
-      projectId
-    );
-
-    if (!existingProject) {
-      return next(
-        new ErrorResponse('Project not found', 404)
-      );
-    }
-
-    if (
-      !(
-        req.user?._id ===
-        existingProject.createdBy.toString()
-      )
-    ) {
-      return next(
-        new ErrorResponse(
-          'You are not authorized to perform this action',
-          403
-        )
-      );
-    }
-
-    validateProjectInputsLength(req, res, async () => {
-      const updatedProject =
-        await Project.findByIdAndUpdate(
-          projectId,
-          { $set: req.body },
-          { new: true }
+export const getProject = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const projectId = req.params.id;
+    try {
+      if (!mongoose.Types.ObjectId.isValid(projectId)) {
+        return next(
+          new ErrorResponse('Invalid project ID', 400)
         );
-      if (!updatedProject) {
+      }
+
+      const project = await Project.findById(projectId);
+
+      if (!project) {
+        return next(
+          new ErrorResponse('Project not found', 404)
+        );
+      }
+      res.status(200).json({ success: true, project });
+    } catch (error) {
+      console.error('Error fetching project:', error);
+      return next(
+        new ErrorResponse('Failed to fetch projects', 422)
+      );
+    }
+  }
+);
+
+export const updateProject = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const projectId = req.params.id;
+    try {
+      const existingProjectWithSameTitle =
+        await Project.findOne({
+          name: req.body.name,
+          _id: { $ne: projectId },
+        });
+
+      if (existingProjectWithSameTitle) {
+        return next(
+          new ErrorResponse(
+            'Project with the same name already exists',
+            400
+          )
+        );
+      }
+
+      const existingProject = await Project.findById(
+        projectId
+      );
+
+      if (!existingProject) {
         return next(
           new ErrorResponse('Project not found', 404)
         );
       }
 
-      return res.status(200).json({
-        success: true,
-        project: updatedProject,
-        message: 'Project updated successfully',
-      });
-    });
-  } catch (error) {
-    console.error('Error updating project:', error);
-    return next(
-      new ErrorResponse('Failed to update project', 422)
-    );
-  }
-};
-
-export const deleteProject = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const project = await Project.findById(req.params.id);
-
-    if (!project) {
-      return next(
-        new ErrorResponse('Project not found', 404)
-      );
-    }
-
-    if (!(req.user?._id === project.createdBy.toString())) {
-      return next(
-        new ErrorResponse(
-          'You are not authorized to perform this action',
-          403
+      if (
+        !(
+          req.user?._id ===
+          existingProject.createdBy.toString()
         )
+      ) {
+        return next(
+          new ErrorResponse(
+            'You are not authorized to perform this action',
+            403
+          )
+        );
+      }
+
+      validateProjectInputsLength(req, res, async () => {
+        const updatedProject =
+          await Project.findByIdAndUpdate(
+            projectId,
+            { $set: req.body },
+            { new: true }
+          );
+        if (!updatedProject) {
+          return next(
+            new ErrorResponse('Project not found', 404)
+          );
+        }
+
+        return res.status(200).json({
+          success: true,
+          project: updatedProject,
+          message: 'Project updated successfully',
+        });
+      });
+    } catch (error) {
+      console.error('Error updating project:', error);
+      return next(
+        new ErrorResponse('Failed to update project', 422)
       );
     }
-
-    await project.deleteOne();
-
-    res.status(200).json({
-      success: true,
-      message: 'Project deleted successfully',
-    });
-  } catch (error) {
-    console.error('Error deleting project:', error);
-    return next(
-      new ErrorResponse('Failed to delete project', 422)
-    );
   }
-};
+);
+
+export const deleteProject = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const project = await Project.findById(req.params.id);
+
+      if (!project) {
+        return next(
+          new ErrorResponse('Project not found', 404)
+        );
+      }
+
+      if (
+        !(req.user?._id === project.createdBy.toString())
+      ) {
+        return next(
+          new ErrorResponse(
+            'You are not authorized to perform this action',
+            403
+          )
+        );
+      }
+
+      await project.deleteOne();
+
+      res.status(200).json({
+        success: true,
+        message: 'Project deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      return next(
+        new ErrorResponse('Failed to delete project', 422)
+      );
+    }
+  }
+);
