@@ -1,15 +1,15 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import authRoutes from "./routes/auth.route";
-import projectRoutes from "./routes/project.route";
-import taskRoutes from "./routes/task.route";
-import userRoutes from "./routes/user.route";
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/auth.route';
+import projectRoutes from './routes/project.route';
+import taskRoutes from './routes/task.route';
+import userRoutes from './routes/user.route';
 import commentRoutes from "./routes/comment.route";
-import swaggerUi from "swagger-ui-express";
-import errorHandler from "./middlewares/error";
-import swaggerSpec from "./utils/swaggerSpec";
-import morgan from "morgan";
+import swaggerUi from 'swagger-ui-express';
+import errorHandler from './middlewares/error';
+import swaggerSpec from './swaggerSpec';
+import morgan from 'morgan';
 
 dotenv.config({ path: "./config/config.env" });
 require("./db");

@@ -1,5 +1,6 @@
-import { Request, Response, NextFunction } from "express";
-import ErrorResponse from "../utils/errorResponse";
+import { statusCode } from './../statusCodes';
+import { Request, Response, NextFunction } from 'express';
+import ErrorResponse from '../utils/errorResponse';
 
 const errorHandler = (
   err: any,
@@ -11,32 +12,38 @@ const errorHandler = (
 
   error.message = err.message;
 
-  // Log to console for dev
   console.log(err);
 
-  // Mongoose bad ObjectId
-  if (err.name === "CastError") {
+  if (err.name === 'CastError') {
     const message = `Resource not found`;
-    error = new ErrorResponse(message, 404);
+    error = new ErrorResponse(message, statusCode.notFound);
   }
 
-  // Mongoose duplicate key
   if (err.code === 11000) {
-    const message = "Duplicate field value entered";
-    error = new ErrorResponse(message, 400);
+    const message = 'Duplicate field value entered';
+    error = new ErrorResponse(
+      message,
+      statusCode.badRequest
+    );
   }
 
-  // Mongoose validation error
-  if (err.name === "ValidationError") {
-    const messages = Object.values(err.errors).map((val: any) => val.message);
-    const message = messages.join(", "); // Join the messages into a single string
-    error = new ErrorResponse(message, 400);
+  if (err.name === 'ValidationError') {
+    const messages = Object.values(err.errors).map(
+      (val: any) => val.message
+    );
+    const message = messages.join(', ');
+    error = new ErrorResponse(
+      message,
+      statusCode.badRequest
+    );
   }
 
-  res.status(error.statusCode || 500).json({
-    success: false,
-    error: error.message || "Server Error",
-  });
+  res
+    .status(error.statusCode || statusCode.unprocessable)
+    .json({
+      success: false,
+      error: error.message || 'Unprocessable entity',
+    });
 };
 
 export default errorHandler;
