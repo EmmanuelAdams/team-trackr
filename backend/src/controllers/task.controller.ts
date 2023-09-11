@@ -133,7 +133,7 @@ export const createTask = asyncHandler(
   }
 );
 
-export const getTask = asyncHandler(
+export const getTask = asyncHandler( 
   async (
     req: Request,
     res: Response,

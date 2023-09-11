@@ -21,8 +21,8 @@ router.use(
 
 router
   .route('/')
-  .get(advancedResults(Project, 'tasks'), getAllProjects);
-
+  .get(advancedResults(Project, 'tasks'), getAllProjects); 
+ 
 router.post('/new-project', authenticate, createProject);
 
 router.get(

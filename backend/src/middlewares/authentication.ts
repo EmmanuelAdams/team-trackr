@@ -67,5 +67,5 @@ const authenticate = (
       .json({ message: 'Invalid token' });
   }
 };
-
+ 
 export = authenticate;
