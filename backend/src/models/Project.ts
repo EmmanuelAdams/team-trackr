@@ -12,7 +12,7 @@ export interface ProjectDocument extends Document {
   endDate: Date;
 }
 
-const projectSchema = new Schema<ProjectDocument>(
+const ProjectSchema = new Schema<ProjectDocument>(
   {
     name: { type: String, required: true, min: 3, max: 50 },
     description: {
@@ -46,7 +46,7 @@ const projectSchema = new Schema<ProjectDocument>(
   }
 );
 
-projectSchema.virtual('tasks', {
+ProjectSchema.virtual('tasks', {
   ref: 'Task',
   localField: '_id',
   foreignField: 'project',
@@ -55,5 +55,5 @@ projectSchema.virtual('tasks', {
 
 export const Project = model<ProjectDocument>(
   'Project',
-  projectSchema
+  ProjectSchema
 );

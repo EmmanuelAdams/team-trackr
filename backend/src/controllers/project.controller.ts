@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { Project } from '../models/Project';
 import asyncHandler from '../middlewares/async';
 import ErrorResponse from '../utils/errorResponse';
+import { statusCode } from '../statusCodes';
 
 export const validateProjectInputsLength = (
   req: Request,
@@ -12,17 +13,21 @@ export const validateProjectInputsLength = (
   const { name, description } = req.body;
 
   if (name?.length < 3 || name?.length > 50) {
-    return res.status(400).json({
-      message:
+    return next(
+      new ErrorResponse(
         'Project name length must be between 3 and 50 characters',
-    });
+        statusCode.badRequest
+      )
+    );
   }
 
   if (description?.length < 3 || description?.length > 50) {
-    return res.status(400).json({
-      message:
+    return next(
+      new ErrorResponse(
         'Project description length must be between 3 and 300 characters',
-    });
+        statusCode.badRequest
+      )
+    );
   }
 
   next();
@@ -30,7 +35,9 @@ export const validateProjectInputsLength = (
 
 export const getAllProjects = asyncHandler(
   async (req: Request, res: any, next: NextFunction) => {
-    res.status(200).json(res.advancedResults);
+    res
+      .status(statusCode.success)
+      .json(res.advancedResults);
   }
 );
 
@@ -42,7 +49,7 @@ export const getAllOrganizationProjects = asyncHandler(
       createdBy: organizationId,
     });
 
-    return res.status(200).json({
+    return res.status(statusCode.success).json({
       success: true,
       count: projects.length,
       projects,
@@ -66,7 +73,7 @@ export const createProject = asyncHandler(
         return next(
           new ErrorResponse(
             'You are not authorized to create a project',
-            403
+            statusCode.forbidden
           )
         );
       }
@@ -91,13 +98,13 @@ export const createProject = asyncHandler(
           return next(
             new ErrorResponse(
               'Project with this name already exists',
-              400
+              statusCode.badRequest
             )
           );
         }
 
         const savedProject = await newProject.save();
-        res.status(201).json({
+        res.status(statusCode.created).json({
           success: true,
           project: savedProject,
           message: 'Project created successfully',
@@ -106,7 +113,10 @@ export const createProject = asyncHandler(
     } catch (error) {
       console.error('Error creating project:', error);
       return next(
-        new ErrorResponse('Failed to create project', 422)
+        new ErrorResponse(
+          'Failed to create project',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -122,7 +132,10 @@ export const getProject = asyncHandler(
     try {
       if (!mongoose.Types.ObjectId.isValid(projectId)) {
         return next(
-          new ErrorResponse('Invalid project ID', 400)
+          new ErrorResponse(
+            'Invalid project ID',
+            statusCode.badRequest
+          )
         );
       }
 
@@ -130,14 +143,22 @@ export const getProject = asyncHandler(
 
       if (!project) {
         return next(
-          new ErrorResponse('Project not found', 404)
+          new ErrorResponse(
+            'Project not found',
+            statusCode.notFound
+          )
         );
       }
-      res.status(200).json({ success: true, project });
+      res
+        .status(statusCode.success)
+        .json({ success: true, project });
     } catch (error) {
       console.error('Error fetching project:', error);
       return next(
-        new ErrorResponse('Failed to fetch projects', 422)
+        new ErrorResponse(
+          'Failed to fetch projects',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -161,7 +182,7 @@ export const updateProject = asyncHandler(
         return next(
           new ErrorResponse(
             'Project with the same name already exists',
-            400
+            statusCode.badRequest
           )
         );
       }
@@ -172,7 +193,10 @@ export const updateProject = asyncHandler(
 
       if (!existingProject) {
         return next(
-          new ErrorResponse('Project not found', 404)
+          new ErrorResponse(
+            'Project not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -185,7 +209,7 @@ export const updateProject = asyncHandler(
         return next(
           new ErrorResponse(
             'You are not authorized to perform this action',
-            403
+            statusCode.forbidden
           )
         );
       }
@@ -199,11 +223,14 @@ export const updateProject = asyncHandler(
           );
         if (!updatedProject) {
           return next(
-            new ErrorResponse('Project not found', 404)
+            new ErrorResponse(
+              'Project not found',
+              statusCode.notFound
+            )
           );
         }
 
-        return res.status(200).json({
+        return res.status(statusCode.success).json({
           success: true,
           project: updatedProject,
           message: 'Project updated successfully',
@@ -212,7 +239,10 @@ export const updateProject = asyncHandler(
     } catch (error) {
       console.error('Error updating project:', error);
       return next(
-        new ErrorResponse('Failed to update project', 422)
+        new ErrorResponse(
+          'Failed to update project',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -229,7 +259,10 @@ export const deleteProject = asyncHandler(
 
       if (!project) {
         return next(
-          new ErrorResponse('Project not found', 404)
+          new ErrorResponse(
+            'Project not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -239,21 +272,24 @@ export const deleteProject = asyncHandler(
         return next(
           new ErrorResponse(
             'You are not authorized to perform this action',
-            403
+            statusCode.forbidden
           )
         );
       }
 
       await project.deleteOne();
 
-      res.status(200).json({
+      res.status(statusCode.success).json({
         success: true,
         message: 'Project deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting project:', error);
       return next(
-        new ErrorResponse('Failed to delete project', 422)
+        new ErrorResponse(
+          'Failed to delete project',
+          statusCode.unprocessable
+        )
       );
     }
   }

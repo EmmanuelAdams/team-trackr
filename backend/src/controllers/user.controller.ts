@@ -1,3 +1,4 @@
+import { statusCode } from './../statusCodes';
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '../middlewares/async';
 import { User } from '../models/User';
@@ -11,7 +12,7 @@ export const getAllUsers = asyncHandler(
   ) => {
     try {
       const users = await User.find();
-      res.status(200).json({
+      res.status(statusCode.success).json({
         success: true,
         count: users.length,
         users,
@@ -19,7 +20,10 @@ export const getAllUsers = asyncHandler(
     } catch (error) {
       console.error('Error fetching all users:', error);
       return next(
-        new ErrorResponse('Failed to fetch all users', 422)
+        new ErrorResponse(
+          'Failed to fetch all users',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -40,15 +44,23 @@ export const getUser = asyncHandler(
 
       if (!user) {
         return next(
-          new ErrorResponse('User not found', 404)
+          new ErrorResponse(
+            'User not found',
+            statusCode.notFound
+          )
         );
       }
 
-      res.status(200).json({ success: true, user });
+      res
+        .status(statusCode.success)
+        .json({ success: true, user });
     } catch (error) {
       console.error('Error fetching user:', error);
       return next(
-        new ErrorResponse('Failed to fetch user', 422)
+        new ErrorResponse(
+          'Failed to fetch user',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -67,15 +79,23 @@ export const getLoggedInUser = asyncHandler(
 
       if (!user) {
         return next(
-          new ErrorResponse('User not found', 404)
+          new ErrorResponse(
+            'User not found',
+            statusCode.notFound
+          )
         );
       }
 
-      res.status(200).json({ success: true, user });
+      res
+        .status(statusCode.success)
+        .json({ success: true, user });
     } catch (error) {
       console.error('Error fetching user:', error);
       return next(
-        new ErrorResponse('Failed to fetch user', 422)
+        new ErrorResponse(
+          'Failed to fetch user',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -92,7 +112,10 @@ export const deleteUser = asyncHandler(
 
       if (!user) {
         return next(
-          new ErrorResponse('User not found', 404)
+          new ErrorResponse(
+            'User not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -100,21 +123,24 @@ export const deleteUser = asyncHandler(
         return next(
           new ErrorResponse(
             'You are not authorized to perform this action',
-            403
+            statusCode.forbidden
           )
         );
       }
 
       await user.deleteOne();
 
-      res.status(200).json({
+      res.status(statusCode.success).json({
         success: true,
         message: 'User deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting user:', error);
       return next(
-        new ErrorResponse('Failed to delete user', 422)
+        new ErrorResponse(
+          'Failed to delete user',
+          statusCode.unprocessable
+        )
       );
     }
   }

@@ -1,4 +1,5 @@
 import { model, Schema, Document } from 'mongoose';
+import crypto from 'crypto';
 
 interface Availability {
   status: 'Available' | 'Not Available';
@@ -16,9 +17,13 @@ export interface UserDocument extends Document {
   userType: 'Employee' | 'Organization';
   organizationName?: string;
   employees?: string[];
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
+  getResetPasswordToken: () => string;
+  createdAt: Date;
 }
 
-const userSchema = new Schema<UserDocument>({
+const UserSchema = new Schema<UserDocument>({
   name: {
     type: String,
     required: true,
@@ -94,6 +99,35 @@ const userSchema = new Schema<UserDocument>({
     },
     default: [],
   },
+  resetPasswordToken: {
+    type: String,
+    default: '',
+  },
+  resetPasswordExpire: {
+    type: Date,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
-export const User = model<UserDocument>('User', userSchema);
+// Generate and hash password token
+UserSchema.methods.getResetPasswordToken = function () {
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // Set expiration
+  this.resetPasswordExpire =
+    Date.now() + 24 * 60 * 60 * 1000;
+
+  return resetToken;
+};
+
+export const User = model<UserDocument>('User', UserSchema);

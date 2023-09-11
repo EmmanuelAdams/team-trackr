@@ -7,7 +7,7 @@ import taskRoutes from './routes/task.route';
 import userRoutes from './routes/user.route';
 import swaggerUi from 'swagger-ui-express';
 import errorHandler from './middlewares/error';
-import swaggerSpec from './utils/swaggerSpec';
+import swaggerSpec from './swaggerSpec';
 import morgan from 'morgan';
 
 dotenv.config();

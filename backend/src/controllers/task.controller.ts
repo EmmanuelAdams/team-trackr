@@ -3,7 +3,7 @@ import { Task } from '../models/Task';
 import { Project } from '../models/Project';
 import ErrorResponse from '../utils/errorResponse';
 import asyncHandler from '../middlewares/async';
-import { title } from 'process';
+import { statusCode } from './../statusCodes';
 
 export const validateTaskInputsLength = (
   req: Request,
@@ -13,14 +13,14 @@ export const validateTaskInputsLength = (
   const { title, description } = req.body;
 
   if (title?.length < 3 || title?.length > 50) {
-    return res.status(400).json({
+    return res.status(statusCode.badRequest).json({
       message:
         'Task title length must be between 3 and 50 characters',
     });
   }
 
   if (description?.length < 3 || description?.length > 50) {
-    return res.status(400).json({
+    return res.status(statusCode.badRequest).json({
       message:
         'Task description length must be between 3 and 300 characters',
     });
@@ -34,7 +34,7 @@ export const getAllTasks = asyncHandler(
     const tasks = await Task.find();
 
     res
-      .status(200)
+      .status(statusCode.success)
       .json({ count: tasks.length, data: tasks });
   }
 );
@@ -47,7 +47,7 @@ export const getProjectTasks = asyncHandler(
       project: projectId,
     });
 
-    return res.status(200).json({
+    return res.status(statusCode.success).json({
       success: true,
       count: projectTasks.length,
       data: projectTasks,
@@ -68,7 +68,7 @@ export const createTask = asyncHandler(
         (req.user?.level !== 'CEO' &&
           req.user?.level !== 'Senior')
       ) {
-        return res.status(403).json({
+        return res.status(statusCode.forbidden).json({
           message:
             'You are not authorized to create a task',
         });
@@ -80,7 +80,10 @@ export const createTask = asyncHandler(
 
       if (!project) {
         return next(
-          new ErrorResponse('Project not found', 404)
+          new ErrorResponse(
+            'Project not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -111,14 +114,14 @@ export const createTask = asyncHandler(
           return next(
             new ErrorResponse(
               'Task with this title already exists',
-              400
+              statusCode.badRequest
             )
           );
         }
 
         const savedTask = await newTask.save();
 
-        res.status(201).json({
+        res.status(statusCode.created).json({
           success: true,
           data: savedTask,
           message: 'Task created successfully',
@@ -127,7 +130,10 @@ export const createTask = asyncHandler(
     } catch (error) {
       console.error('Error creating task:', error);
       return next(
-        new ErrorResponse('Failed to create task', 422)
+        new ErrorResponse(
+          'Failed to create task',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -147,10 +153,15 @@ export const getTask = asyncHandler(
     });
 
     if (!task) {
-      return next(new ErrorResponse('Task not found', 404));
+      return next(
+        new ErrorResponse(
+          'Task not found',
+          statusCode.notFound
+        )
+      );
     }
 
-    res.status(200).json({
+    res.status(statusCode.success).json({
       success: true,
       data: task,
     });
@@ -175,7 +186,7 @@ export const updateTaskInProject = asyncHandler(
         return next(
           new ErrorResponse(
             'Task with the same name already exists',
-            400
+            statusCode.badRequest
           )
         );
       }
@@ -184,7 +195,10 @@ export const updateTaskInProject = asyncHandler(
 
       if (!existingTask) {
         return next(
-          new ErrorResponse('Task not found', 404)
+          new ErrorResponse(
+            'Task not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -194,7 +208,10 @@ export const updateTaskInProject = asyncHandler(
 
       if (!project) {
         return next(
-          new ErrorResponse('Project not found', 404)
+          new ErrorResponse(
+            'Project not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -212,7 +229,7 @@ export const updateTaskInProject = asyncHandler(
         return next(
           new ErrorResponse(
             'You are not authorized to perform this action',
-            403
+            statusCode.forbidden
           )
         );
       }
@@ -225,7 +242,7 @@ export const updateTaskInProject = asyncHandler(
             { new: true }
           );
 
-        return res.status(200).json({
+        return res.status(statusCode.success).json({
           success: true,
           task: savedUpdatedTask,
           message: 'Task updated successfully',
@@ -234,7 +251,10 @@ export const updateTaskInProject = asyncHandler(
     } catch (error) {
       console.error('Error updating task:', error);
       return next(
-        new ErrorResponse('Failed to update task', 422)
+        new ErrorResponse(
+          'Failed to update task',
+          statusCode.unprocessable
+        )
       );
     }
   }
@@ -251,7 +271,10 @@ export const deleteTaskInProject = asyncHandler(
 
       if (!task) {
         return next(
-          new ErrorResponse('Task not found', 404)
+          new ErrorResponse(
+            'Task not found',
+            statusCode.notFound
+          )
         );
       }
 
@@ -265,21 +288,24 @@ export const deleteTaskInProject = asyncHandler(
         return next(
           new ErrorResponse(
             'You are not authorized to perform this action',
-            403
+            statusCode.forbidden
           )
         );
       }
 
       await task.deleteOne();
 
-      res.status(200).json({
+      res.status(statusCode.success).json({
         success: true,
         message: 'Task deleted successfully',
       });
     } catch (error) {
       console.error('Error deleting task:', error);
       return next(
-        new ErrorResponse('Failed to delete task', 422)
+        new ErrorResponse(
+          'Failed to delete task',
+          statusCode.unprocessable
+        )
       );
     }
   }
