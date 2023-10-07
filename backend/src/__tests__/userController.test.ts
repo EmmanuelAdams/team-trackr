@@ -1,4 +1,4 @@
-import { statusCode } from './../statusCodes';
+import { statusCode } from '../statusCodes';
 import request from 'supertest';
 import { app, server } from '../index';
 import jwt from 'jsonwebtoken';
@@ -51,9 +51,7 @@ describe('Get All Users Route', () => {
 
     await User.insertMany(mockUsers);
 
-    const response = await request(app).get(
-      '/api/v1/users'
-    );
+    const response = await request(app).get(userRoute);
 
     expect(response.status).toBe(statusCode.success);
     expect(response.body.success).toBe(true);
@@ -79,7 +77,7 @@ describe('Get User Route', () => {
     const savedUser = await newUser.save();
 
     const response = await request(app).get(
-      `/api/v1/users/${savedUser._id}`
+      `${userRoute}/${savedUser._id}`
     );
 
     expect(response.status).toBe(200);
@@ -91,7 +89,7 @@ describe('Get User Route', () => {
     const nonExistentUserId = new mongoose.Types.ObjectId();
 
     const response = await request(app).get(
-      `/api/v1/users/${nonExistentUserId}`
+      `${userRoute}/${nonExistentUserId}`
     );
 
     expect(response.status).toBe(404);
@@ -103,7 +101,7 @@ describe('Get User Route', () => {
     const invalidUserId = new mongoose.Types.ObjectId();
 
     const response = await request(app).get(
-      `/api/v1/users/${invalidUserId}w`
+      `${userRoute}/${invalidUserId}w`
     );
 
     expect(response.status).toBe(422);
@@ -114,35 +112,41 @@ describe('Get User Route', () => {
 
 describe('Get Logged-In User Route', () => {
   it('should get the logged-in user', async () => {
-    const newUser = new User({
-      id: mockUser._id,
-      name: 'Test Employee Admin',
-      email: 'testemplo@email.com',
-      password: 'testpassword',
-      level: mockUser.level,
-      yearsOfWork: 5,
-      organizationName: 'Test Organization LTD',
-      userType: mockUser.userType,
-    });
-    const savedUser = await newUser.save();
+    const email = 'testemployee@email.com';
+    const password = 'testpassword';
+
+    await request(app)
+      .post('/api/v1/auth/register/organization')
+      .send({
+        id: mockUser._id,
+        name: 'Test Employee Admin',
+        email: email,
+        password: password,
+        level: mockUser.level,
+        yearsOfWork: 5,
+        organizationName: 'Test Organization LTD',
+        userType: mockUser.userType,
+      });
 
     const authResponse = await request(app)
       .post('/api/v1/auth/login')
       .send({
-        email: newUser.email,
-        password: newUser.password,
+        email: email,
+        password: password,
       });
 
     const authToken = authResponse.body.token;
 
     const response = await request(app)
-      .get('/api/v1/users/me')
+      .get(`${userRoute}/me`)
       .set('Authorization', `Bearer ${authToken}`);
 
     expect(response.status).toBe(statusCode.success);
     expect(response.body.success).toBe(true);
     expect(response.body).toHaveProperty('user');
-    expect(response.body.user.name).toBe(newUser.name);
+    expect(response.body.user.name).toBe(
+      'Test Employee Admin'
+    );
   });
 });
 
@@ -161,7 +165,7 @@ describe('Delete User Route', () => {
     const savedUser = await newUser.save();
 
     const response = await request(app)
-      .delete(`/api/v1/users/${savedUser._id}/delete`)
+      .delete(`${userRoute}/${savedUser._id}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
     console.log(response.body);
@@ -177,7 +181,7 @@ describe('Delete User Route', () => {
     const nonExistentUserId = new mongoose.Types.ObjectId();
 
     const response = await request(app)
-      .delete(`/api/v1/users/${nonExistentUserId}/delete`)
+      .delete(`${userRoute}/${nonExistentUserId}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
     expect(response.status).toBe(404);
@@ -189,7 +193,7 @@ describe('Delete User Route', () => {
     const invalidUserId = new mongoose.Types.ObjectId();
 
     const response = await request(app)
-      .delete(`/api/v1/users/${invalidUserId}q/delete`)
+      .delete(`${userRoute}/${invalidUserId}q/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
     expect(response.status).toBe(422);
