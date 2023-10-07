@@ -16,6 +16,8 @@ const secretKey = 'qwerty@123';
 const mockToken = jwt.sign(mockUser, secretKey);
 
 const userRoute = '/api/v1/users';
+const loginRoute = '/api/v1/auth/login';
+const registerRoute = '/api/v1/auth/register';
 
 beforeAll(() => {
   app.use(authenticate);
@@ -80,7 +82,7 @@ describe('Get User Route', () => {
       `${userRoute}/${savedUser._id}`
     );
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(statusCode.success);
     expect(response.body.success).toBe(true);
     expect(response.body.user.name).toBe('Test Employee');
   });
@@ -104,7 +106,7 @@ describe('Get User Route', () => {
       `${userRoute}/${invalidUserId}w`
     );
 
-    expect(response.status).toBe(422);
+    expect(response.status).toBe(statusCode.unprocessable);
     expect(response.body.success).toBe(false);
     expect(response.body.error).toBe('Invalid ID');
   });
@@ -116,7 +118,7 @@ describe('Get Logged-In User Route', () => {
     const password = 'testpassword';
 
     await request(app)
-      .post('/api/v1/auth/register/organization')
+      .post(`${registerRoute}/organization`)
       .send({
         id: mockUser._id,
         name: 'Test Employee Admin',
@@ -129,7 +131,7 @@ describe('Get Logged-In User Route', () => {
       });
 
     const authResponse = await request(app)
-      .post('/api/v1/auth/login')
+      .post(loginRoute)
       .send({
         email: email,
         password: password,
@@ -146,6 +148,100 @@ describe('Get Logged-In User Route', () => {
     expect(response.body).toHaveProperty('user');
     expect(response.body.user.name).toBe(
       'Test Employee Admin'
+    );
+  });
+});
+
+describe('Update password', () => {
+  it('should update the user password', async () => {
+    const newPassword = 'newPassword456';
+    const email = 'updateepassword@email.com';
+    const password = 'oldPassword123';
+
+    await request(app)
+      .post(`${registerRoute}/organization`)
+      .send({
+        name: 'Test Employee Admin',
+        email: email,
+        password: password,
+        level: mockUser.level,
+        yearsOfWork: 5,
+        organizationName: 'Test Organization LTD',
+        userType: mockUser.userType,
+      });
+
+    const authResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: password,
+      });
+
+    const authToken = authResponse.body.token;
+
+    const response = await request(app)
+      .put(`${userRoute}/update-password`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ password: 'oldPassword123', newPassword });
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.message).toBe(
+      'Password updated successfully'
+    );
+
+    const loginResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: newPassword,
+      });
+
+    expect(loginResponse.status).toBe(statusCode.success);
+    expect(loginResponse.body.success).toBe(true);
+    expect(loginResponse.body.message).toBe(
+      'User logged in successfully'
+    );
+    expect(
+      loginResponse.header.authorization
+    ).toBeDefined();
+  });
+
+  it('should return an error for incorrect old password', async () => {
+    const newPassword = 'newPassword456';
+    const email = 'updatepassword@email.com';
+    const password = 'oldPassword123';
+
+    await request(app)
+      .post(`${registerRoute}/organization`)
+      .send({
+        name: 'Test Employee Admin',
+        email: email,
+        password: password,
+        level: mockUser.level,
+        yearsOfWork: 5,
+        organizationName: 'Test Organization LTD',
+        userType: mockUser.userType,
+      });
+
+    const authResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: password,
+      });
+
+    const authToken = authResponse.body.token;
+
+    const response = await request(app)
+      .put(`${userRoute}/update-password`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ password: 'wrongPassword', newPassword });
+
+    expect(response.status).toBe(statusCode.unauthorized);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
+      'Password is incorrect'
     );
   });
 });
@@ -168,9 +264,7 @@ describe('Delete User Route', () => {
       .delete(`${userRoute}/${savedUser._id}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
-    console.log(response.body);
-
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(statusCode.success);
     expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'User deleted successfully'
@@ -196,7 +290,8 @@ describe('Delete User Route', () => {
       .delete(`${userRoute}/${invalidUserId}q/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
-    expect(response.status).toBe(422);
+    expect(response.status).toBe(statusCode.unprocessable);
+    expect(response.body.success).toBe(false);
     expect(response.body.error).toBe('Invalid ID');
   });
 });

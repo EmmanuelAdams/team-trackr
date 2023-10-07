@@ -1,6 +1,7 @@
 import { statusCode } from './../statusCodes';
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '../middlewares/async';
+import bcrypt from 'bcrypt';
 import { User } from '../models/User';
 import ErrorResponse from '../utils/errorResponse';
 
@@ -68,6 +69,73 @@ export const getLoggedInUser = asyncHandler(
     res
       .status(statusCode.success)
       .json({ success: true, user });
+  }
+);
+
+export const updatePassword = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const { password, newPassword } = req.body;
+
+    const user = await User.findById(req.user?._id).select(
+      '+password'
+    );
+
+    if (!user) {
+      return next(
+        new ErrorResponse(
+          'User not found',
+          statusCode.notFound
+        )
+      );
+    }
+
+    const isOldPasswordValid = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!isOldPasswordValid) {
+      return next(
+        new ErrorResponse(
+          'Password is incorrect',
+          statusCode.unauthorized
+        )
+      );
+    }
+
+    if (newPassword.length < 6) {
+      return next(
+        new ErrorResponse(
+          'Password must be at least 6 characters long',
+          statusCode.badRequest
+        )
+      );
+    }
+
+    if (password === newPassword) {
+      return next(
+        new ErrorResponse(
+          'Password can not be the same as old password',
+          statusCode.badRequest
+        )
+      );
+    }
+
+    const hashedNewPassword = await bcrypt.hash(
+      newPassword,
+      10
+    );
+    user.password = hashedNewPassword;
+    await user.save();
+
+    return res.status(statusCode.success).json({
+      success: true,
+      message: 'Password updated successfully',
+    });
   }
 );
 

@@ -1,3 +1,4 @@
+import { statusCode } from './../statusCodes';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import request from 'supertest';
@@ -9,6 +10,9 @@ const employeeEmail = 'employee@example.com';
 const organizationEmail = 'organization@example.com';
 const employeePassword = 'testpassword';
 const organizationPassword = 'testpassword';
+const registerRoute = '/api/v1/auth/register';
+const loginRoute = '/api/v1/auth/login';
+const logoutRoute = '/api/v1/auth/logout';
 
 const mockUser = {
   _id: new mongoose.Types.ObjectId(),
@@ -31,7 +35,7 @@ afterAll(async () => {
 describe('Registeration Routes', () => {
   it('should register a new organization successfully', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/organization')
+      .post(`${registerRoute}/organization`)
       .send({
         name: 'Test Organization Admin',
         email: organizationEmail,
@@ -41,7 +45,8 @@ describe('Registeration Routes', () => {
         organizationName: 'Test Organization',
       });
 
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(statusCode.created);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'Organization registered successfully'
     );
@@ -55,7 +60,7 @@ describe('Registeration Routes', () => {
 
   it('should register a new employee successfully', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'Test Employee',
         email: employeeEmail,
@@ -68,7 +73,8 @@ describe('Registeration Routes', () => {
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(statusCode.created);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'Employee registered successfully'
     );
@@ -78,7 +84,7 @@ describe('Registeration Routes', () => {
 
   it('should return 400 for an existing email', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'Another Employee',
         email: employeeEmail,
@@ -91,8 +97,9 @@ describe('Registeration Routes', () => {
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe(
+    expect(response.status).toBe(statusCode.badRequest);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
       'User with this email already exists'
     );
   });
@@ -101,7 +108,7 @@ describe('Registeration Routes', () => {
 describe('Registration Validation Check', () => {
   it('should return 400 for invalid password', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'User with Invalid password',
         email: 'invalidpassword@example.com',
@@ -114,15 +121,16 @@ describe('Registration Validation Check', () => {
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe(
+    expect(response.status).toBe(statusCode.badRequest);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
       'Password must be at least 6 characters long'
     );
   });
 
   it('should return 400 for invalid level', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'User with Invalid level',
         email: 'invalidlevel@example.com',
@@ -135,34 +143,36 @@ describe('Registration Validation Check', () => {
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe('Invalid level');
+    expect(response.status).toBe(statusCode.badRequest);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Invalid level');
   });
 
   it('should return 400 for invalid yearsOfWork', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'User with Invalid yearsOfWork',
         email: 'invalidyearsofwork@example.com',
         password: '12345678',
         level: 'Senior',
-        yearsOfWork: 200,
+        yearsOfWork: statusCode.success,
         availability: {
           status: 'Available',
         },
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe(
+    expect(response.status).toBe(statusCode.badRequest);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
       'Years of work must be between 0 and 99'
     );
   });
 
   it('should return 400 for invalid userType', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'User with Invalid userType',
         email: 'invalidusertype@example.com',
@@ -175,13 +185,14 @@ describe('Registration Validation Check', () => {
         userType: 'invalid',
       });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe('Invalid userType');
+    expect(response.status).toBe(statusCode.badRequest);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Invalid userType');
   });
 
   it('should return 400 for invalid availability', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'User with Invalid Availability',
         email: 'invalidemail@email.com',
@@ -194,15 +205,16 @@ describe('Registration Validation Check', () => {
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(400);
-    expect(response.body.message).toBe(
+    expect(response.status).toBe(statusCode.badRequest);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
       'Reason and next Available date are required for "Not Available" status'
     );
   });
 
   it('should register a new employee with valid reason', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'User with Valid Availability',
         email: 'validemail@email.com',
@@ -217,7 +229,8 @@ describe('Registration Validation Check', () => {
         userType: 'Employee',
       });
 
-    expect(response.status).toBe(201);
+    expect(response.status).toBe(statusCode.created);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'Employee registered successfully'
     );
@@ -227,7 +240,7 @@ describe('Registration Validation Check', () => {
 describe('Login Routes', () => {
   it('should login organization user successfully', async () => {
     await request(app)
-      .post('/api/v1/auth/register/organization')
+      .post(`${registerRoute}/organization`)
       .send({
         name: 'Test Organization Admin',
         email: organizationEmail,
@@ -238,13 +251,14 @@ describe('Login Routes', () => {
       });
 
     const response = await request(app)
-      .post('/api/v1/auth/login')
+      .post(loginRoute)
       .send({
         email: organizationEmail,
         password: organizationPassword,
       });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'User logged in successfully'
     );
@@ -253,7 +267,7 @@ describe('Login Routes', () => {
 
   it('should login employee user successfully', async () => {
     await request(app)
-      .post('/api/v1/auth/register/employee')
+      .post(`${registerRoute}/employee`)
       .send({
         name: 'Test Employee',
         email: employeeEmail,
@@ -267,13 +281,14 @@ describe('Login Routes', () => {
       });
 
     const response = await request(app)
-      .post('/api/v1/auth/login')
+      .post(loginRoute)
       .send({
         email: employeeEmail,
         password: employeePassword,
       });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'User logged in successfully'
     );
@@ -282,113 +297,147 @@ describe('Login Routes', () => {
 
   it('should return 401 for invalid credentials', async () => {
     const response = await request(app)
-      .post('/api/v1/auth/login')
+      .post(loginRoute)
       .send({
         email: 'invalid@example.com',
         password: 'invalidpassword',
       });
 
-    expect(response.status).toBe(401);
-    expect(response.body.message).toBe(
-      'Invalid credentials'
-    );
+    expect(response.status).toBe(statusCode.unauthorized);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Invalid credentials');
+  });
+});
+
+describe('forgotPassword', () => {
+  it('should send a password reset email', async () => {
+    const newUser = new User({
+      id: mockUser._id,
+      name: 'Test Employee Admin',
+      email: 'testemplo@email.com',
+      password: 'testpassword',
+      level: mockUser.level,
+      yearsOfWork: 5,
+      organizationName: 'Test Organization LTD',
+      userType: mockUser.userType,
+    });
+    const savedUser = await newUser.save();
+
+    const response = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: savedUser.email });
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.data).toBe('Email sent!');
   });
 
-  describe('Logout Route', () => {
-    it('should logout user successfully', async () => {
-      await request(app)
-        .post('/api/v1/auth/register/employee')
-        .send({
-          name: 'Test Employee',
-          email: employeeEmail,
-          password: employeePassword,
-          level: 'Mid-level',
-          yearsOfWork: 2,
-          availability: {
-            status: 'Available',
-          },
-          userType: 'Employee',
-        });
+  it('should reset the user password', async () => {
+    let resetToken;
 
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: employeeEmail,
-          password: employeePassword,
-        });
-
-      const logoutResponse = await request(app)
-        .post('/api/v1/auth/logout')
-        .set(
-          'Authorization',
-          response.header.authorization
-        );
-
-      expect(response.status).toBe(200);
-      expect(response.body.message).toBe(
-        'User logged in successfully'
-      );
-      expect(response.header.authorization).toBeDefined();
-      expect(logoutResponse.status).toBe(200);
-      expect(logoutResponse.body.message).toBe(
-        'User logged out successfully'
-      );
-      expect(logoutResponse.header).toHaveProperty(
-        'authorization'
-      );
-      expect(logoutResponse.header.authorization).toBe('');
+    const newUser = new User({
+      name: 'Reset Employee Admin',
+      email: 'resetemployeepassword@email.com',
+      password: 'testpassword',
+      level: 'CEO',
+      yearsOfWork: 5,
+      userType: 'Employee',
+      organizationName: 'Test Organization LTD',
     });
+
+    resetToken = newUser.getResetPasswordToken();
+
+    await newUser.save();
+    const newPassword = 'resetTestPassword';
+
+    const response = await request(app)
+      .put(`/api/v1/auth/reset-password/${resetToken}`)
+      .send({ password: newPassword });
+
+    console.log(response.body);
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toBe(
+      'Password reset successful'
+    );
+
+    const updatedUser = await User.findById(newUser._id);
+
+    expect(updatedUser?.resetPasswordToken).toBe('');
+    expect(updatedUser?.resetPasswordExpire).toBe(
+      undefined
+    );
+
+    const loginResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: newUser.email,
+        password: newPassword,
+      });
+
+    expect(loginResponse.status).toBe(statusCode.success);
+    expect(loginResponse.body.success).toBe(true);
+    expect(loginResponse.body.message).toBe(
+      'User logged in successfully'
+    );
+    expect(
+      loginResponse.header.authorization
+    ).toBeDefined();
   });
 });
 
 describe('Logout Route', () => {
-  it('should log out a logged in user successfully', async () => {
-    const newUser = new User({
-      _id: mockUser._id,
-      name: 'Test Logout',
-      email: 'logout@email.com',
-      password: organizationPassword,
-      level: mockUser.level,
-      userType: mockUser.userType,
-      yearsOfWork: 5,
-      organizationName: 'Test Logout Organization',
-    });
-
-    await newUser.save();
+  it('should logout user successfully', async () => {
+    await request(app)
+      .post(`${registerRoute}/employee`)
+      .send({
+        name: 'Test Employee',
+        email: employeeEmail,
+        password: employeePassword,
+        level: 'Mid-level',
+        yearsOfWork: 2,
+        availability: {
+          status: 'Available',
+        },
+        userType: 'Employee',
+      });
 
     const response = await request(app)
-      .post('/api/v1/auth/logout')
-      .set('Authorization', `Bearer ${mockToken}`);
+      .post(loginRoute)
+      .send({
+        email: employeeEmail,
+        password: employeePassword,
+      });
 
-    expect(response.status).toBe(200);
+    const logoutResponse = await request(app)
+      .post(logoutRoute)
+      .set('Authorization', response.header.authorization);
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
+      'User logged in successfully'
+    );
+    expect(response.header.authorization).toBeDefined();
+    expect(logoutResponse.status).toBe(statusCode.success);
+    expect(logoutResponse.body.message).toBe(
       'User logged out successfully'
     );
+    expect(logoutResponse.header).toHaveProperty(
+      'authorization'
+    );
+    expect(logoutResponse.header.authorization).toBe('');
   });
 
   it('should handle a case where the user is not found', async () => {
     await User.deleteMany();
 
     const response = await request(app)
-      .post('/api/v1/auth/logout')
+      .post(logoutRoute)
       .set('Authorization', `Bearer ${mockToken}`);
 
-    expect(response.status).toBe(404);
-    expect(response.body.message).toBe('User not found');
-  });
-
-  it('should handle errors during logging out', async () => {
-    jest
-      .spyOn(User, 'findById')
-      .mockRejectedValue(new Error('Test error'));
-
-    const response = await request(app)
-      .post('/api/v1/auth/logout')
-      .set('Authorization', `Bearer ${mockToken}`);
-
-    expect(response.status).toBe(422);
-    expect(response.body.message).toBe(
-      'Failed to log out user'
-    );
+    expect(response.status).toBe(statusCode.notFound);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('User not found');
   });
 });

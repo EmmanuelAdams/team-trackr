@@ -1,4 +1,7 @@
-import { getLoggedInUser } from './../controllers/user.controller';
+import {
+  getLoggedInUser,
+  updatePassword,
+} from './../controllers/user.controller';
 import express from 'express';
 import {
   getAllUsers,
@@ -12,6 +15,11 @@ const router = express.Router();
 
 router.get('/', getAllUsers);
 router.get('/me', authenticate, getLoggedInUser);
+router.put(
+  '/update-password',
+  authenticate,
+  updatePassword
+);
 router.get('/:id', validateObjectId, getUser);
 router.delete(
   '/:id/delete',

@@ -16,33 +16,23 @@ export const logoutUser = asyncHandler(
   ) => {
     const userId = req.user?._id;
 
-    try {
-      const user = await User.findById(userId);
+    const user = await User.findById(userId);
 
-      if (!user) {
-        return next(
-          new ErrorResponse(
-            'User not found',
-            statusCode.notFound
-          )
-        );
-      }
-
-      res.setHeader('Authorization', '');
-
-      return res.status(statusCode.success).json({
-        success: true,
-        message: 'User logged out successfully',
-      });
-    } catch (error) {
-      console.error('Error logging out user:', error);
+    if (!user) {
       return next(
         new ErrorResponse(
-          'Failed to logout user',
-          statusCode.unprocessable
+          'User not found',
+          statusCode.notFound
         )
       );
     }
+
+    res.setHeader('Authorization', '');
+
+    return res.status(statusCode.success).json({
+      success: true,
+      message: 'User logged out successfully',
+    });
   }
 );
 
@@ -52,63 +42,53 @@ export const loginUser = asyncHandler(
     res: Response,
     next: NextFunction
   ) => {
-    try {
-      const { email, password } = req.body;
+    const { email, password } = req.body;
 
-      const existingUser = await User.findOne({ email });
-      if (!existingUser) {
-        return next(
-          new ErrorResponse(
-            'Invalid credentials',
-            statusCode.unauthorized
-          )
-        );
-      }
-
-      const isPasswordValid = await bcrypt.compare(
-        password,
-        existingUser.password
-      );
-
-      if (!isPasswordValid) {
-        return next(
-          new ErrorResponse(
-            'Invalid credentials',
-            statusCode.unauthorized
-          )
-        );
-      }
-
-      const secretKey = process.env.SECRET_KEY as string;
-
-      const tokenPayload = {
-        userId: existingUser._id,
-        userType: existingUser.userType,
-        level: existingUser.level,
-      };
-
-      const token = jwt.sign(tokenPayload, secretKey, {
-        expiresIn: '7d',
-      });
-
-      return res
-        .status(statusCode.success)
-        .header('Authorization', `Bearer ${token}`)
-        .json({
-          success: true,
-          message: 'User logged in successfully',
-          user: existingUser,
-          token: token,
-        });
-    } catch (error) {
-      console.error('Error logging in user:', error);
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
       return next(
         new ErrorResponse(
-          'Failed to login user',
-          statusCode.unprocessable
+          'Invalid credentials',
+          statusCode.unauthorized
         )
       );
     }
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+
+    if (!isPasswordValid) {
+      return next(
+        new ErrorResponse(
+          'Invalid credentials',
+          statusCode.unauthorized
+        )
+      );
+    }
+
+    const secretKey = process.env.SECRET_KEY as string;
+
+    const tokenPayload = {
+      userId: existingUser._id,
+      userType: existingUser.userType,
+      level: existingUser.level,
+    };
+
+    const token = jwt.sign(tokenPayload, secretKey, {
+      expiresIn: '7d',
+    });
+
+    return res
+      .status(statusCode.success)
+      .header('Authorization', `Bearer ${token}`)
+      .json({
+        success: true,
+        message: 'User logged in successfully',
+        user: existingUser,
+        token: token,
+      });
   }
 );
 
@@ -118,126 +98,111 @@ export const registerEmployee = asyncHandler(
     res: Response,
     next: NextFunction
   ) => {
-    try {
-      const {
-        name,
-        email,
-        password,
-        level,
-        yearsOfWork,
-        availability,
-        userType,
-      } = req.body;
+    const {
+      name,
+      email,
+      password,
+      level,
+      yearsOfWork,
+      availability,
+      userType,
+    } = req.body;
 
-      if (password.length < 6) {
-        return next(
-          new ErrorResponse(
-            'Password must be at least 6 characters long',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      if (
-        !['Junior', 'Mid-level', 'Senior', 'CEO'].includes(
-          level
-        )
-      ) {
-        return next(
-          new ErrorResponse(
-            'Invalid level',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      if (yearsOfWork < 0 || yearsOfWork > 99) {
-        return next(
-          new ErrorResponse(
-            'Years of work must be between 0 and 99',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      if (
-        !['Employee', 'Organization'].includes(userType)
-      ) {
-        return next(
-          new ErrorResponse(
-            'Invalid userType',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return next(
-          new ErrorResponse(
-            'User with this email already exists',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      const hashedPassword = await bcrypt.hash(
-        password,
-        10
-      );
-
-      if (availability) {
-        if (
-          availability.status === 'Not Available' &&
-          (!availability.reason ||
-            !availability.nextAvailability)
-        ) {
-          return next(
-            new ErrorResponse(
-              'Reason and next Available date are required for "Not Available" status',
-              statusCode.badRequest
-            )
-          );
-        }
-        if (availability.nextAvailability) {
-          availability.nextAvailability = new Date(
-            availability.nextAvailability
-          );
-        }
-      }
-
-      const newUser: Partial<UserDocument> = {
-        name,
-        email,
-        password: hashedPassword,
-        level: level as
-          | 'Junior'
-          | 'Mid-level'
-          | 'Senior'
-          | 'CEO',
-        yearsOfWork,
-        availability,
-        userType: 'Employee',
-      };
-
-      const createdUser = await User.create(
-        newUser as UserDocument
-      );
-
-      return res.status(statusCode.created).json({
-        success: true,
-        message: 'Employee registered successfully',
-        user: createdUser,
-      });
-    } catch (error) {
-      console.error('Error registering employee:', error);
+    if (password.length < 6) {
       return next(
         new ErrorResponse(
-          'Failed to register employee',
-          statusCode.unprocessable
+          'Password must be at least 6 characters long',
+          statusCode.badRequest
         )
       );
     }
+
+    if (
+      !['Junior', 'Mid-level', 'Senior', 'CEO'].includes(
+        level
+      )
+    ) {
+      return next(
+        new ErrorResponse(
+          'Invalid level',
+          statusCode.badRequest
+        )
+      );
+    }
+
+    if (yearsOfWork < 0 || yearsOfWork > 99) {
+      return next(
+        new ErrorResponse(
+          'Years of work must be between 0 and 99',
+          statusCode.badRequest
+        )
+      );
+    }
+
+    if (!['Employee', 'Organization'].includes(userType)) {
+      return next(
+        new ErrorResponse(
+          'Invalid userType',
+          statusCode.badRequest
+        )
+      );
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return next(
+        new ErrorResponse(
+          'User with this email already exists',
+          statusCode.badRequest
+        )
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    if (availability) {
+      if (
+        availability.status === 'Not Available' &&
+        (!availability.reason ||
+          !availability.nextAvailability)
+      ) {
+        return next(
+          new ErrorResponse(
+            'Reason and next Available date are required for "Not Available" status',
+            statusCode.badRequest
+          )
+        );
+      }
+      if (availability.nextAvailability) {
+        availability.nextAvailability = new Date(
+          availability.nextAvailability
+        );
+      }
+    }
+
+    const newUser: Partial<UserDocument> = {
+      name,
+      email,
+      password: hashedPassword,
+      level: level as
+        | 'Junior'
+        | 'Mid-level'
+        | 'Senior'
+        | 'CEO',
+      yearsOfWork,
+      availability,
+      userType: 'Employee',
+    };
+
+    const createdUser = await User.create(
+      newUser as UserDocument
+    );
+
+    return res.status(statusCode.created).json({
+      success: true,
+      message: 'Employee registered successfully',
+      user: createdUser,
+    });
   }
 );
 
@@ -247,143 +212,50 @@ export const registerOrganization = asyncHandler(
     res: Response,
     next: NextFunction
   ) => {
-    try {
-      const {
-        name,
-        email,
-        password,
-        level,
-        yearsOfWork,
-        organizationName,
-      } = req.body;
+    const {
+      name,
+      email,
+      password,
+      level,
+      yearsOfWork,
+      organizationName,
+    } = req.body;
 
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return next(
-          new ErrorResponse(
-            'User with this email already exists',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      const hashedPassword = await bcrypt.hash(
-        password,
-        10
-      );
-
-      const newUser: Partial<UserDocument> = {
-        name,
-        email,
-        password: hashedPassword,
-        level: level as
-          | 'Junior'
-          | 'Mid-level'
-          | 'Senior'
-          | 'CEO',
-        yearsOfWork,
-        organizationName,
-        userType: 'Organization',
-      };
-
-      const createdUser = await User.create(
-        newUser as UserDocument
-      );
-
-      return res.status(statusCode.created).json({
-        success: true,
-        message: 'Organization registered successfully',
-        user: createdUser,
-      });
-    } catch (error) {
-      console.error(
-        'Error registering organization:',
-        error
-      );
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return next(
         new ErrorResponse(
-          'Failed to register organization',
-          statusCode.unprocessable
+          'User with this email already exists',
+          statusCode.badRequest
         )
       );
     }
-  }
-);
 
-export const updatePassword = asyncHandler(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const { password, newPassword } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = await User.findById(
-        req.user?._id
-      ).select('+password');
+    const newUser: Partial<UserDocument> = {
+      name,
+      email,
+      password: hashedPassword,
+      level: level as
+        | 'Junior'
+        | 'Mid-level'
+        | 'Senior'
+        | 'CEO',
+      yearsOfWork,
+      organizationName,
+      userType: 'Organization',
+    };
 
-      if (!user) {
-        return next(
-          new ErrorResponse(
-            'User not found',
-            statusCode.notFound
-          )
-        );
-      }
+    const createdUser = await User.create(
+      newUser as UserDocument
+    );
 
-      const isOldPasswordValid = await bcrypt.compare(
-        password,
-        user.password
-      );
-
-      if (!isOldPasswordValid) {
-        return next(
-          new ErrorResponse(
-            'Password is incorrect',
-            statusCode.unauthorized
-          )
-        );
-      }
-
-      if (newPassword.length < 6) {
-        return next(
-          new ErrorResponse(
-            'Password must be at least 6 characters long',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      if (password === newPassword) {
-        return next(
-          new ErrorResponse(
-            'Password can not be the same as old password',
-            statusCode.badRequest
-          )
-        );
-      }
-
-      const hashedNewPassword = await bcrypt.hash(
-        newPassword,
-        10
-      );
-      user.password = hashedNewPassword;
-      await user.save();
-
-      return res.status(statusCode.success).json({
-        success: true,
-        message: 'Password updated successfully',
-      });
-    } catch (error) {
-      console.error('Error updating user password:', error);
-      return next(
-        new ErrorResponse(
-          'Failed to update password',
-          statusCode.unprocessable
-        )
-      );
-    }
+    return res.status(statusCode.created).json({
+      success: true,
+      message: 'Organization registered successfully',
+      user: createdUser,
+    });
   }
 );
 
@@ -416,31 +288,20 @@ export const forgotPassword = asyncHandler(
 
     const message = `Dear ${user.name},\n\nYou are receiving this email because a request has been made to reset your password. If you did not initiate this request, please disregard this message.\n\nTo reset your password, please click on the link below:\n\n[Reset Password Link]: ${resetUrl}\n\nThis link will expire in ${user.resetPasswordExpire}, so be sure to complete the password reset process promptly.\n\nThank you for using our service.\n\nBest regards,\nTeam Trackr`;
 
-    try {
-      await sendEmail({
-        email: user?.email,
-        subject: 'Password Reset Token',
-        message,
-      });
+    await sendEmail({
+      email: user?.email,
+      subject: 'Password Reset Token',
+      message,
+    });
 
-      res
-        .status(statusCode.success)
-        .json({ success: true, data: 'Email sent!' });
-    } catch (error) {
-      console.log(error);
+    res
+      .status(statusCode.success)
+      .json({ success: true, data: 'Email sent!' });
 
-      user.resetPasswordToken = '';
-      user.resetPasswordExpire = undefined;
+    user.resetPasswordToken = '';
+    user.resetPasswordExpire = undefined;
 
-      await user.save({ validateBeforeSave: false });
-
-      return next(
-        new ErrorResponse(
-          'Email could not be sent',
-          statusCode.unprocessable
-        )
-      );
-    }
+    await user.save({ validateBeforeSave: false });
   }
 );
 
