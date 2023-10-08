@@ -1,3 +1,4 @@
+import { statusCode } from '../statusCodes';
 import request from 'supertest';
 import { app, server } from '../index';
 import jwt from 'jsonwebtoken';
@@ -13,6 +14,10 @@ const mockUser = {
 
 const secretKey = 'qwerty@123';
 const mockToken = jwt.sign(mockUser, secretKey);
+
+const userRoute = '/api/v1/users';
+const loginRoute = '/api/v1/auth/login';
+const registerRoute = '/api/v1/auth/register';
 
 beforeAll(() => {
   app.use(authenticate);
@@ -46,22 +51,17 @@ describe('Get All Users Route', () => {
       },
     ];
 
-    await User.create(mockUsers);
+    await User.insertMany(mockUsers);
 
-    const response = await request(app).get(
-      '/api/v1/users'
-    );
+    const response = await request(app).get(userRoute);
 
-    const userNames = response.body.map(
-      (user: { name: string }) => user.name
-    );
-
-    expect(userNames).toContain('User 1');
-    expect(userNames).toContain('User 2');
-
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveLength(2);
-  }, 20000);
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.users).toBeInstanceOf(Array);
+    expect(response.body.users).toHaveLength(2);
+    expect(response.body.users[0].name).toBe('User 1');
+    expect(response.body.users[1].name).toBe('User 2');
+  }, 15000);
 });
 
 describe('Get User Route', () => {
@@ -79,56 +79,193 @@ describe('Get User Route', () => {
     const savedUser = await newUser.save();
 
     const response = await request(app).get(
-      `/api/v1/users/${savedUser._id}`
+      `${userRoute}/${savedUser._id}`
     );
 
-    expect(response.status).toBe(200);
-    expect(response.body.name).toBe('Test Employee');
-  }, 10000);
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.user.name).toBe('Test Employee');
+  });
 
   it('should handle user not found', async () => {
     const nonExistentUserId = new mongoose.Types.ObjectId();
 
-    const response = await request(app)
-      .get(`/api/v1/users/${nonExistentUserId}`)
-      .set('Authorization', `Bearer ${mockToken}`);
+    const response = await request(app).get(
+      `${userRoute}/${nonExistentUserId}`
+    );
 
     expect(response.status).toBe(404);
-    expect(response.body.message).toBe('User not found');
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('User not found');
   });
 
-  it('should handle errors when fetching a user', async () => {
+  it('should handle fetching invalid user by ID', async () => {
     const invalidUserId = new mongoose.Types.ObjectId();
 
-    const response = await request(app)
-      .get(`/api/v1/users/${invalidUserId}w`)
-      .set('Authorization', `Bearer ${mockToken}`);
-
-    expect(response.status).toBe(500);
-    expect(response.body.message).toBe(
-      'Failed to fetch user'
+    const response = await request(app).get(
+      `${userRoute}/${invalidUserId}w`
     );
-  }, 10000);
+
+    expect(response.status).toBe(statusCode.unprocessable);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Invalid ID');
+  });
+});
+
+describe('Get Logged-In User Route', () => {
+  it('should get the logged-in user', async () => {
+    const email = 'testemployee@email.com';
+    const password = 'testpassword';
+
+    await request(app)
+      .post(`${registerRoute}/organization`)
+      .send({
+        id: mockUser._id,
+        name: 'Test Employee Admin',
+        email: email,
+        password: password,
+        level: mockUser.level,
+        yearsOfWork: 5,
+        organizationName: 'Test Organization LTD',
+        userType: mockUser.userType,
+      });
+
+    const authResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: password,
+      });
+
+    const authToken = authResponse.body.token;
+
+    const response = await request(app)
+      .get(`${userRoute}/me`)
+      .set('Authorization', `Bearer ${authToken}`);
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body).toHaveProperty('user');
+    expect(response.body.user.name).toBe(
+      'Test Employee Admin'
+    );
+  });
+});
+
+describe('Update password', () => {
+  it('should update the user password', async () => {
+    const newPassword = 'newPassword456';
+    const email = 'updateepassword@email.com';
+    const password = 'oldPassword123';
+
+    await request(app)
+      .post(`${registerRoute}/organization`)
+      .send({
+        name: 'Test Employee Admin',
+        email: email,
+        password: password,
+        level: mockUser.level,
+        yearsOfWork: 5,
+        organizationName: 'Test Organization LTD',
+        userType: mockUser.userType,
+      });
+
+    const authResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: password,
+      });
+
+    const authToken = authResponse.body.token;
+
+    const response = await request(app)
+      .put(`${userRoute}/update-password`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ password: 'oldPassword123', newPassword });
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.message).toBe(
+      'Password updated successfully'
+    );
+
+    const loginResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: newPassword,
+      });
+
+    expect(loginResponse.status).toBe(statusCode.success);
+    expect(loginResponse.body.success).toBe(true);
+    expect(loginResponse.body.message).toBe(
+      'User logged in successfully'
+    );
+    expect(
+      loginResponse.header.authorization
+    ).toBeDefined();
+  });
+
+  it('should return an error for incorrect old password', async () => {
+    const newPassword = 'newPassword456';
+    const email = 'updatepassword@email.com';
+    const password = 'oldPassword123';
+
+    await request(app)
+      .post(`${registerRoute}/organization`)
+      .send({
+        name: 'Test Employee Admin',
+        email: email,
+        password: password,
+        level: mockUser.level,
+        yearsOfWork: 5,
+        organizationName: 'Test Organization LTD',
+        userType: mockUser.userType,
+      });
+
+    const authResponse = await request(app)
+      .post(loginRoute)
+      .send({
+        email: email,
+        password: password,
+      });
+
+    const authToken = authResponse.body.token;
+
+    const response = await request(app)
+      .put(`${userRoute}/update-password`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send({ password: 'wrongPassword', newPassword });
+
+    expect(response.status).toBe(statusCode.unauthorized);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe(
+      'Password is incorrect'
+    );
+  });
 });
 
 describe('Delete User Route', () => {
   it('should delete a user successfully', async () => {
     const newUser = new User({
+      id: mockUser._id,
       name: 'Test Employee Admin',
       email: 'testemplo@email.com',
       password: 'testpassword',
-      level: 'CEO',
+      level: mockUser.level,
       yearsOfWork: 5,
       organizationName: 'Test Organization LTD',
-      userType: 'Organization',
+      userType: mockUser.userType,
     });
     const savedUser = await newUser.save();
 
     const response = await request(app)
-      .delete(`/api/v1/users/${savedUser._id}/delete`)
+      .delete(`${userRoute}/${savedUser._id}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe(
       'User deleted successfully'
     );
@@ -138,23 +275,23 @@ describe('Delete User Route', () => {
     const nonExistentUserId = new mongoose.Types.ObjectId();
 
     const response = await request(app)
-      .delete(`/api/v1/users/${nonExistentUserId}/delete`)
+      .delete(`${userRoute}/${nonExistentUserId}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
     expect(response.status).toBe(404);
-    expect(response.body.message).toBe('User not found');
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('User not found');
   });
 
-  it('should handle errors when deleting a user', async () => {
+  it('should handle deleting invalid user by ID', async () => {
     const invalidUserId = new mongoose.Types.ObjectId();
 
     const response = await request(app)
-      .delete(`/api/v1/users/${invalidUserId}q/delete`)
+      .delete(`${userRoute}/${invalidUserId}q/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
-    expect(response.status).toBe(500);
-    expect(response.body.message).toBe(
-      'Failed to delete user'
-    );
+    expect(response.status).toBe(statusCode.unprocessable);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Invalid ID');
   });
 });

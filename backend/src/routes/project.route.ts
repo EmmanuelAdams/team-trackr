@@ -11,10 +11,12 @@ import taskRouter from './task.route';
 import advancedResults from '../middlewares/advancedResults';
 import { Project } from '../models/Project';
 import authenticate from '../middlewares/authentication';
+import { validateObjectId } from '../middlewares/objectIdValidator';
 const router = express.Router();
 
 router.use(
   '/:projectId/new-task',
+  validateObjectId,
   authenticate,
   taskRouter
 );
@@ -30,8 +32,23 @@ router.get(
   authenticate,
   getAllOrganizationProjects
 );
-router.get('/:id', authenticate, getProject);
-router.patch('/:id/update', authenticate, updateProject);
-router.delete('/:id/delete', authenticate, deleteProject);
+router.get(
+  '/:id',
+  validateObjectId,
+  authenticate,
+  getProject
+);
+router.patch(
+  '/:id/update',
+  validateObjectId,
+  authenticate,
+  updateProject
+);
+router.delete(
+  '/:id/delete',
+  validateObjectId,
+  authenticate,
+  deleteProject
+);
 
 export default router;

@@ -41,9 +41,9 @@ paths:
                 success: false
                 error: User not found
         '422':
-          description: Failed to delete user
+          description: Invalid user ID
           content:
             application/json:
               example:
                 success: false
-                error: An error occurred while deleting the user.
+                error: Invalid user ID
