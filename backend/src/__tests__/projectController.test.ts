@@ -15,7 +15,7 @@ const mockUser = {
   userType: 'Employee',
 };
 
-const secretKey = 'qwerty@123';
+const secretKey = process.env.SECRET_KEY || 'secret';
 const mockToken = jwt.sign(mockUser, secretKey);
 
 const projectRoute = '/api/v1/projects';
@@ -92,7 +92,7 @@ describe('Project Routes', () => {
       userType: 'Employee',
     };
 
-    const secretKey = 'qwerty@123';
+    const secretKey = process.env.SECRET_KEY || 'secret';
     const mockToken = jwt.sign(mockUser, secretKey);
 
     const response = await request(app)
@@ -120,7 +120,7 @@ describe('Project Routes', () => {
       userType: 'InvalidType',
     };
 
-    const secretKey = 'qwerty@123';
+    const secretKey = process.env.SECRET_KEY || 'secret';
     const mockToken = jwt.sign(mockUser, secretKey);
 
     const response = await request(app)
@@ -148,7 +148,7 @@ describe('Project Routes', () => {
       userType: 'Organization',
     };
 
-    const secretKey = 'qwerty@123';
+    const secretKey = process.env.SECRET_KEY || 'secret';
     const mockToken = jwt.sign(mockUser, secretKey);
 
     const response = await request(app)

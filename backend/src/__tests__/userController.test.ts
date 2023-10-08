@@ -12,7 +12,7 @@ const mockUser = {
   userType: 'Employee',
 };
 
-const secretKey = 'qwerty@123';
+const secretKey = process.env.SECRET_KEY || 'secret';
 const mockToken = jwt.sign(mockUser, secretKey);
 
 const userRoute = '/api/v1/users';
