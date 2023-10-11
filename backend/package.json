@@ -7,6 +7,9 @@
     "test": "NODE_ENV=test jest --detectOpenHandles --verbose  --runInBand --watch",
     "start": "nodemon --exec ts-node --files src/index.ts"
   },
+  "engines": {
+  "node": ">=14 <15"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
