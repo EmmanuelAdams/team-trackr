@@ -8,7 +8,7 @@
     "start": "nodemon --exec ts-node --files src/index.ts"
   },
   "engines": {
-  "node": ">=14.20.1"
+  "node": ">=14 <15"
 },
   "keywords": [],
   "author": "",
