@@ -246,7 +246,7 @@ describe('Project Routes', () => {
     expect(updatedProject?.name).toBe(
       'Updated Project Name'
     );
-  }, 15000);
+  });
 
   it('should handle updating a project with the same name', async () => {
     const existingProjectData = new Project({

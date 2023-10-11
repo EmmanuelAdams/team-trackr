@@ -329,7 +329,7 @@ describe('forgotPassword', () => {
 
     expect(response.status).toBe(statusCode.success);
     expect(response.body.data).toBe('Email sent!');
-  }, 15000);
+  });
 
   it('should reset the user password', async () => {
     let resetToken;
