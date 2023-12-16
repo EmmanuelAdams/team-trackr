@@ -15,16 +15,13 @@ const router = express.Router({ mergeParams: true });
 
 router
   .route("/")
-  .get(
-    advancedResults(Comment), 
-    getAllComments 
-  )
+  .get(advancedResults(Comment), getAllComments)
   .post(authenticate, postComment);
 
-router
-  .route("/:id")
-  .get(getComment)
-  .put(authenticate, updateComment)
-  .delete(authenticate, deleteComment);
+router.route("/:id").get(authenticate, getComment);
+
+router.patch("/:id/update", authenticate, updateComment);
+
+router.delete("/:id/delete", authenticate, deleteComment);
 
 export default router;

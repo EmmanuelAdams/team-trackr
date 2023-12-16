@@ -16,10 +16,11 @@ const router = express.Router();
 
 router.use(
   '/:projectId/new-task',
-  validateObjectId,
+  // validateObjectId,
   authenticate,
   taskRouter
 );
+
 
 router
   .route('/')

@@ -1,5 +1,5 @@
 paths:
-  /api/v1/tasks/project/{projectId}:
+  /api/v1/tasks/projects/{projectId}:
     get:
       summary: Get project tasks
       description: Retrieve tasks associated with a specific project.

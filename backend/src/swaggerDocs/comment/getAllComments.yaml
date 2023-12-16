@@ -1,0 +1,53 @@
+paths:
+  /api/v1/comments:
+    get:
+      summary: Get all comments
+      description: Retrieve all comments
+      tags:
+        - Comment
+      security: []
+      responses:
+        '200':
+          description: Successfully retrieved all comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the request was successful.
+                    example: true
+                  count:
+                    type: integer
+                    description: The number of comments in the response.
+                    example: 5
+                  tasks:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Comment'
+                    description: An array containing comment objects.
+        '422':
+          description: An error occurred while fetching all comments
+          content:
+            application/json:
+              example:
+                success: false
+                error: Failed to fetch all comments
+
+definitions:
+  Comment:
+    type: object
+    properties:
+      _id:
+        type: string
+      text:
+        type: string
+      createdAt:
+        type: string
+        format: date
+      taskId:
+        type: string
+      createdBy:
+        type: string
+        description: The user ID that created the comment

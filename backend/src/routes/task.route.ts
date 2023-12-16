@@ -15,11 +15,11 @@ import { Task } from '../models/Task';
 
 const router = express.Router({ mergeParams: true });
 
-router.use('/:taskId/comments', authenticate, commentRouter);
+router.use('/:taskId/new-comment', authenticate, commentRouter);
 
 router
   .route('/')
-  .get(advancedResults(Task), getAllTasks)
+  .get(advancedResults(Task, 'comments'), getAllTasks)
   .post(authenticate, createTask);
 
 router.get(
@@ -38,7 +38,7 @@ router.patch(
 
 router.delete(
   '/:id/delete',
-  authenticate,
+  authenticate, 
   deleteTaskInProject
 );
 

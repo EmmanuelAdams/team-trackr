@@ -1,0 +1,93 @@
+paths:
+  /api/v1/tasks/{taskId}/new-comment:
+    post:
+      summary: Create Comment
+      description: Create a new comment associated with a task.
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: taskId
+          required: true
+          schema:
+            type: string
+          description: The ID of the task to which the comment will be associated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/definitions/CommentInput'
+      responses:
+        '201':
+          description: Comment created successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the comment creation was successful.
+                    example: true
+                  data:
+                    $ref: '#/definitions/CommentResponse'
+                    description: The created comment object.
+                  message:
+                    type: string
+                    description: A message indicating the success of the comment creation.
+                    example: Comment created successfully
+        '403':
+          description: Forbidden. User not authorized to create a comment.
+          content:
+            application/json:
+              example:
+                success: false
+                error: You are not authorized to create a comment
+        '404':
+          description: Task not found.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Task not found
+        '422':
+          description: Unprocessable Entity. Failed to create the comment.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Failed to create comment
+
+definitions:
+  CommentInput:
+    type: object
+    properties:
+      text:
+        type: string
+      createdBy:
+        type: string
+      
+
+  CommentResponse:
+    type: object
+    properties:
+      comment:
+        $ref: '#/definitions/Comment'
+      message:
+        type: string
+
+
+  Comment:
+    type: object
+    properties:
+      _id:
+        type: string
+      text:
+        type: string
+      createdBy:
+        type: string
+        description: The user ID that created the comment
+      createdAt:
+        type: string
+        format: date
