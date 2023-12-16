@@ -67,7 +67,7 @@ describe('Comment Routes', () => {
 
  }, 15000)
 
- it('should create a new comment under a project', async () => {
+ it('should create a new comment under a task', async () => {
     const mockTask = new Task({
         title: 'Test Tasks',
         description: 'Task description',
@@ -143,7 +143,7 @@ describe('Comment Routes', () => {
 
 
 
-it('should update an existing task', async () => {
+it('should update an existing comment', async () => {
 
   const mockTask = new Task({
     title: 'Test Tasks',
@@ -189,7 +189,7 @@ it('should update an existing task', async () => {
   );
 }, 15000);
 
-it('should handle unauthorized user updating task', async () => {
+it('should handle unauthorized user updating comment', async () => {
 
 
     const newTask = new Task({
@@ -302,7 +302,7 @@ it('should handle unauthorized user updating task', async () => {
   });
 
 
-  it('should handle unauthorized user deleting task', async () => {
+  it('should handle unauthorized user deleting comment', async () => {
 
 
     const newTask = new Task({
