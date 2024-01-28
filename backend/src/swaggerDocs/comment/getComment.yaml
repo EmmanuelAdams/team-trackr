@@ -1,20 +1,20 @@
 paths:
-  /api/v1/tasks/{taskId}:
+  /api/v1/comments/{commentId}:
     get:
-      summary: Get task by ID
-      description: Retrieve task details by its unique ID.
+      summary: Get comment by ID
+      description: Retrieve comment details by its unique ID.
       tags:
-        - Task
+        - Comment
       parameters:
         - in: path
-          name: taskId
+          name: commentId
           required: true
-          description: The unique ID of the task to retrieve.
+          description: The unique ID of the comment to retrieve.
           schema:
             type: string
       responses:
         '200':
-          description: Task details retrieved successfully.
+          description: Comment details retrieved successfully.
           content:
             application/json:
               schema:
@@ -25,15 +25,15 @@ paths:
                     description: Indicates if the retrieval was successful.
                     example: true
                   data:
-                    $ref: '#/definitions/Task'
-                    description: The task object.
+                    $ref: '#/definitions/Comment'
+                    description: The comment object.
         '400':
-          description: Bad request - Invalid task ID
+          description: Bad request - Invalid comment ID
           content:
             application/json:
               example:
                 success: false
-                error: Invalid task ID provided.
+                error: Invalid comment ID provided.
         '401':
           description: Unauthorized - Please provide a valid token
           content:
@@ -49,36 +49,34 @@ paths:
                 success: false
                 error: You are not authorized to perform this action
         '404':
-          description: Task not found
+          description: Comment not found
           content:
             application/json:
               example:
                 success: false
-                error: Task not found.
+                error: Comment not found.
         '422':
-          description: Failed to fetch task
+          description: Failed to fetch comment
           content:
             application/json:
               example:
                 success: false
-                error: An error occurred while fetching the task.
+                error: An error occurred while fetching the comment.
 
 definitions:
-  Task:
+  Comment:
     type: object
     properties:
       _id:
         type: string
-        description: The unique identifier of the task.
-      project:
-        $ref: '#/definitions/Project'
-        description: The project associated with the task.
-      title:
+      text:
         type: string
-        description: The title of the task.
-      description:
-        type: string
-        description: The description of the task.
+      task:
+        $ref: '#/definitions/Task'
+        description: The task associated with the comment.   
       createdBy:
-        $ref: '#/definitions/User'
-        description: The user who created the task.
+        type: string
+        description: The user ID that created the comment
+      createdAt:
+        type: string
+        format: date

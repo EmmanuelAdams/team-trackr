@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Project } from '../models/Project';
+import { Task } from '../models/Task';
 import asyncHandler from '../middlewares/async';
 import ErrorResponse from '../utils/errorResponse';
 import { statusCode } from '../statusCodes';
@@ -119,7 +120,10 @@ export const getProject = asyncHandler(
   ) => {
     const projectId = req.params.id;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findById(projectId).populate({
+      path: 'tasks',
+      select: 'title description createdBy',
+    });;
 
     if (!project) {
       return next(
@@ -236,6 +240,8 @@ export const deleteProject = asyncHandler(
       );
     }
 
+    
+    await Task.deleteMany({ project: project._id });
     await project.deleteOne();
 
     res.status(statusCode.success).json({

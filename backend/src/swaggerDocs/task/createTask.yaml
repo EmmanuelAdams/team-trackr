@@ -94,7 +94,7 @@ definitions:
   TaskResponse:
     type: object
     properties:
-      project:
+      task:
         $ref: '#/definitions/Task'
       message:
         type: string

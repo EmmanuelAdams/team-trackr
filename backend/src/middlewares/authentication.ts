@@ -79,5 +79,5 @@ const authenticate = (
     );
   }
 };
-
+ 
 export = authenticate;

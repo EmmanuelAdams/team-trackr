@@ -11,12 +11,12 @@ export interface TaskDocument extends Document {
   createdBy: UserDocument['_id'];
   assignedTo: UserDocument['_id'][];
   project: ProjectDocument['_id'];
-  comments: string[];
+  // comments: string[];
   startDate: Date;
   endDate: Date;
 }
 
-const TaskSchema = new Schema<TaskDocument>({
+const taskSchema = new Schema<TaskDocument>({
   title: { type: String, required: true, min: 3, max: 50 },
   description: {
     type: String,
@@ -52,11 +52,24 @@ const TaskSchema = new Schema<TaskDocument>({
     ref: 'Project',
     required: true,
   },
-  comments: [
-    { type: Schema.Types.ObjectId, ref: 'Comment' },
-  ],
+  // comments: [
+  //   { type: Schema.Types.ObjectId, ref: 'Comment' },
+  // ],
   startDate: { type: Date, required: true },
   endDate: { type: Date },
+}, 
+{
+toJSON: { virtuals: true },
+toObject: { virtuals: true }
+}
+);
+
+
+taskSchema.virtual('comments', {
+  ref: 'Comment',
+  localField: '_id',
+  foreignField: 'task',
+  justOne: false,
 });
 
-export const Task = model<TaskDocument>('Task', TaskSchema);
+export const Task = model<TaskDocument>('Task', taskSchema);

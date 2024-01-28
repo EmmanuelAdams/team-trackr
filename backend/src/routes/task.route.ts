@@ -8,15 +8,18 @@ import {
   getProjectTasks,
 } from '../controllers/task.controller';
 import advancedResults from '../middlewares/advancedResults';
+import commentRouter from './comment.route';
 import authenticate from '../middlewares/authentication';
 
 import { Task } from '../models/Task';
 
 const router = express.Router({ mergeParams: true });
 
+router.use('/:taskId/new-comment', authenticate, commentRouter);
+
 router
   .route('/')
-  .get(advancedResults(Task), getAllTasks)
+  .get(advancedResults(Task, 'comments'), getAllTasks)
   .post(authenticate, createTask);
 
 router.get(
@@ -35,7 +38,7 @@ router.patch(
 
 router.delete(
   '/:id/delete',
-  authenticate,
+  authenticate, 
   deleteTaskInProject
 );
 

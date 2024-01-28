@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { Task } from '../models/Task';
 import { Project } from '../models/Project';
+import { Comment } from '../models/Comment';
 import ErrorResponse from '../utils/errorResponse';
 import asyncHandler from '../middlewares/async';
 import { statusCode } from './../statusCodes';
@@ -30,21 +31,22 @@ export const validateTaskInputsLength = (
 };
 
 export const getAllTasks = asyncHandler(
-  async (req: Request, res: Response) => {
-    const tasks = await Task.find();
+  async (req: Request, res: any) => {
+    // const tasks = await Task.find();
 
     res
       .status(statusCode.success)
-      .json({ count: tasks.length, data: tasks });
+      .json(res.advancedResults);
   }
 );
 
 export const getProjectTasks = asyncHandler(
   async (req: Request, res: Response) => {
-    const projectId = req.params.projectId;
-
     const projectTasks = await Task.find({
-      project: projectId,
+      project: req.params.projectId,
+    }).populate({
+      path: 'comments',
+      select: 'text createdAt createdBy',
     });
 
     return res.status(statusCode.success).json({
@@ -69,6 +71,7 @@ export const createTask = asyncHandler(
           req.user?.level !== 'Senior')
       ) {
         return res.status(statusCode.forbidden).json({
+          success: false,
           message:
             'You are not authorized to create a task',
         });
@@ -122,7 +125,7 @@ export const createTask = asyncHandler(
         const savedTask = await newTask.save();
 
         res.status(statusCode.created).json({
-          success: true,
+          success: true, 
           data: savedTask,
           message: 'Task created successfully',
         });
@@ -139,7 +142,7 @@ export const createTask = asyncHandler(
   }
 );
 
-export const getTask = asyncHandler(
+export const getTask = asyncHandler( 
   async (
     req: Request,
     res: Response,
@@ -148,8 +151,8 @@ export const getTask = asyncHandler(
     const task = await Task.findById(
       req.params.id
     ).populate({
-      path: 'project',
-      select: 'name description createdBy',
+      path: 'comments',
+      select: 'text createdAt createdBy',
     });
 
     if (!task) {
@@ -211,7 +214,7 @@ export const updateTaskInProject = asyncHandler(
           new ErrorResponse(
             'Project not found',
             statusCode.notFound
-          )
+          ) 
         );
       }
 
@@ -292,7 +295,7 @@ export const deleteTaskInProject = asyncHandler(
           )
         );
       }
-
+      await Comment.deleteMany({ task: task._id });
       await task.deleteOne();
 
       res.status(statusCode.success).json({

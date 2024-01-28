@@ -1,0 +1,75 @@
+paths:
+  /api/v1/comments/{commentId}/update:
+    patch:
+      summary: Update comment in task
+      description: Update an existing comment within a task.
+      tags:
+        - Comment
+      parameters:
+        - in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+          description: The ID of the comment to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+      responses:
+        '200':
+          description: Comment updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    description: Indicates if the update was successful.
+                    example: true
+                  comment:
+                    $ref: '#/definitions/Comment'
+                    description: The updated comment object.
+                  message:
+                    type: string
+                    description: A message indicating the success of the update.
+                    example: Comment updated successfully
+        '403':
+          description: You are not authorized to perform this action.
+          content:
+            application/json:
+              example:
+                success: false
+                error: You are not authorized to perform this action
+        '404':
+          description: Comment or Task not found.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Comment not found
+        '422':
+          description: Failed to update comment.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Failed to update comment
+
+definitions:
+  Comment:
+    type: object
+    properties:
+      _id:
+        type: string
+        description: The unique identifier of the task.
+      text:
+        type: string
+        description: The comment text.
+      

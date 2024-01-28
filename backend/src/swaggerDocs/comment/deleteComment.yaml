@@ -1,0 +1,50 @@
+paths:
+  /api/v1/comments/{commentId}/delete:
+    delete:
+      summary: Delete Comment in Task
+      description: Delete a comment in a task by its ID.
+      tags:
+        - Comment
+      parameters:
+        - name: commentId
+          in: path
+          required: true
+          description: The ID of the comment to be deleted.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Comment deleted successfully.
+          content:
+            application/json:
+              example:
+                success: true
+                message: Comment deleted successfully
+        '401':
+          description: Unauthorized - Please provide a valid token
+          content:
+            application/json:
+              example:
+                success: false
+                error: Token missing or invalid
+        '403':
+          description: You are not authorized to perform this action.
+          content:
+            application/json:
+              example:
+                success: false
+                error: You are not authorized to perform this action
+        '404':
+          description: Comment not found.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Comment not found
+        '422':
+          description: Failed to delete comment.
+          content:
+            application/json:
+              example:
+                success: false
+                error: Failed to delete comment
