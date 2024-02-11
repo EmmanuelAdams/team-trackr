@@ -1,9 +1,15 @@
 import { statusCode } from './../statusCodes';
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '../middlewares/async';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import { User } from '../models/User';
 import ErrorResponse from '../utils/errorResponse';
+
+
+
+export async function userExists(user: string): Promise<any> {
+  return User.findById(user);
+}
 
 export const getAllUsers = asyncHandler(
   async (
@@ -93,7 +99,7 @@ export const updatePassword = asyncHandler(
       );
     }
 
-    const isOldPasswordValid = await bcrypt.compare(
+    const isOldPasswordValid = await bcryptjs.compare(
       password,
       user.password
     );
@@ -125,7 +131,7 @@ export const updatePassword = asyncHandler(
       );
     }
 
-    const hashedNewPassword = await bcrypt.hash(
+    const hashedNewPassword = await bcryptjs.hash(
       newPassword,
       10
     );
@@ -173,3 +179,40 @@ export const deleteUser = asyncHandler(
     });
   }
 );
+
+
+export const verifyUser = async(
+    user: string
+  ) => {
+// const user = User.findById(req.user?._id)
+
+if(!user) {
+  return(
+    new ErrorResponse(
+      'User does not exist',
+      statusCode.badRequest
+    )
+  )
+}
+if(!await userExists(user)) {
+  return(
+    new ErrorResponse(
+      'User does not exist',
+      statusCode.badRequest
+    )
+  )
+}
+
+await User.findByIdAndUpdate(user, { verified: true }, {new: true});
+return {message: "User verified"};
+
+
+}
+
+
+// const verifyUser = async (userID: string): Promise<{ message: string }> => {
+//   if (!userID) throw new ApiError(400, "Missing User ID");
+//   if (!await userExists(userID)) throw new ApiError(400, "User does not exist");
+//   await User.findByIdAndUpdate({ _id: userID }, { verified: true });
+//   return { message: "User Verified" };
+// };
