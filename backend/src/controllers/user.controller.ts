@@ -209,10 +209,3 @@ return {message: "User verified"};
 
 }
 
-
-// const verifyUser = async (userID: string): Promise<{ message: string }> => {
-//   if (!userID) throw new ApiError(400, "Missing User ID");
-//   if (!await userExists(userID)) throw new ApiError(400, "User does not exist");
-//   await User.findByIdAndUpdate({ _id: userID }, { verified: true });
-//   return { message: "User Verified" };
-// };

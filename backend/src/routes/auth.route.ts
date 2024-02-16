@@ -1,10 +1,8 @@
+import express, { Request, Response, NextFunction } from "express";
 import {
   forgotPassword,
   resetPassword,
   verifyUser,
-} from './../controllers/auth.controller';
-import express, { Request, Response } from "express";
-import {
   registerEmployee,
   registerOrganization,
   loginUser,
@@ -14,11 +12,16 @@ import authenticate from '../middlewares/authentication';
 
 const router = express.Router();
 
-const routerVerifyUser = (async (req: Request, res: Response) => {
-  // await verifyUser(req.params._id);
+const routerVerifyUser = (async (req: Request, res: Response, next: NextFunction) => {
+  
+  try {
   const userId = req.params.id;
   await verifyUser(userId); 
   res.status(200).json({ message: "Verified Successfully " });
+  next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 
@@ -29,6 +32,5 @@ router.post('/forgot-password', forgotPassword);
 router.put('/reset-password/:resettoken', resetPassword);
 router.post('/logout', authenticate, logoutUser);
 router.get('/verify/:id/:verifyToken', routerVerifyUser);
-// router.post('/verify/:id', authenticate, verifyUser);
 
 export default router;       

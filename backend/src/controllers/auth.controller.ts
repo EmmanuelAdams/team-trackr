@@ -98,46 +98,6 @@ export const loginUser = asyncHandler(
   }
 );
 
-// export const verifyUser = async (userID: string): Promise<{ message: string }> => {
-//   const userId = req.user?._id;
-//   if (!userID) {
-//     new ErrorResponse( 'Missing User ID',
-//     statusCode.badRequest)
-//   }
-//   if (!await userExists(userID)) throw new ApiError(400, "User does not exist");
-  // await User.findByIdAndUpdate({ _id: userID }, { verified: true });
-  // return { message: "User Verified" };
-// };
-
-
-// export const verifyUser = asyncHandler(
-//   async (
-//     req: Request,
-//     res: Response,
-//     next: NextFunction
-//   ) => {
-//     const userId = req?.user?._id as  string;
-//     if (!userId) {
-//       new ErrorResponse( 'Missing User ID',
-//       statusCode.badRequest)
-//     }
-    
-//   const confirmUser = await userExists(userId)
-//   if(!confirmUser) {
-//     new ErrorResponse( 'User does not exist',
-//     statusCode.badRequest)
-//   }
-//   await User.findByIdAndUpdate({ _id: userId }, { verified: true });
-//   return { message: "User Verified" };
-//   }
-// );
-
-
-// export const VerifyUser = asyncHandler(async (req: Request, res: Response) => {
-//   await tokenController.verifyUser(req.params.id, req.params.token);
-//   res.status(statusCode.success).json({ message: "Verified Successfully " });
-// });
-
 
 export const registerEmployee = asyncHandler(
   async (
@@ -464,6 +424,5 @@ export const verifyUser = async (
   }
 
   await userController.verifyUser(user);
-  console.log(user)
   return { message: "Verified Successfully" };
 }; 
