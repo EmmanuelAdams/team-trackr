@@ -11,7 +11,7 @@ import errorHandler from './middlewares/error';
 import swaggerSpec from './swaggerSpec';
 import morgan from 'morgan';
 
-dotenv.config({ path: "./config/config.env" });
+dotenv.config({ path: "./config/config.env" }); 
 require("./db");
 
 const app = express();
