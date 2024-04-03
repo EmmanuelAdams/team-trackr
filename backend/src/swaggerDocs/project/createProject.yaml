@@ -76,8 +76,6 @@ definitions:
         type: string
         minLength: 3
         maxLength: 300
-      createdBy:
-        type: string
       startDate:
         type: string
         format: date

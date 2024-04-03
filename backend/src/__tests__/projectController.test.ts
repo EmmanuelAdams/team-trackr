@@ -20,8 +20,9 @@ const mockToken = jwt.sign(mockUser, secretKey);
 
 const projectRoute = '/api/v1/projects';
 
-beforeAll(() => {
+beforeAll(async () => {
   app.use(authenticate);
+  await Project.deleteMany();
 });
 
 afterAll(async () => {

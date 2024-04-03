@@ -1,6 +1,4 @@
-import { Request, Response } from 'express';
 import request from 'supertest';
-import { validateProjectInputsLength } from '../controllers/project.controller';
 import { app, server } from '../index';
 import { Task } from '../models/Task';
 import { Project } from '../models/Project';
@@ -8,7 +6,6 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import authenticate from '../middlewares/authentication';
 import { statusCode } from '../statusCodes';
-import ErrorResponse from '../utils/errorResponse';
 
 const mockUser = {
   _id: new mongoose.Types.ObjectId(),
@@ -26,40 +23,41 @@ beforeAll(() => {
   app.use(authenticate);
 });
 
+beforeEach(async () => {
+  await Task.deleteMany();
+});
+
 afterAll(async () => {
   await Task.deleteMany();
   await server.close();
 });
 
-
 describe('Task Routes', () => {
- it('should get all task routes', async () => {
-
+  it('should get all task routes', async () => {
     const task1 = new Task({
-        title: 'Test Tasks 1',
-        description: 'Task 1 description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
-      });
-  
-      const task2 = new Task({
-        title: 'Test Tasks 2',
-        description: 'Task 2 description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
-      });
-  
-      await task1.save();
-      await task2.save();
-  
+      title: 'Test Tasks 1',
+      description: 'Task 1 description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+    });
 
-      const response = await request(app).get(taskRoute);
+    const task2 = new Task({
+      title: 'Test Tasks 2',
+      description: 'Task 2 description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+    });
+
+    await task1.save();
+    await task2.save();
+
+    const response = await request(app).get(taskRoute);
 
     expect(response.status).toBe(statusCode.success);
     expect(response.body.success).toBe(true);
@@ -71,11 +69,10 @@ describe('Task Routes', () => {
     expect(response.body.data[1].title).toBe(
       'Test Tasks 2'
     );
-    expect(response.body.count).toBe(2)
+    expect(response.body.count).toBe(2);
+  }, 15000);
 
- }, 15000)
-
- it('should create a new task for authorized CEO under a project', async () => {
+  it('should create a new task for authorized CEO under a project', async () => {
     const mockProject = new Project({
       _id: new mongoose.Types.ObjectId(),
       name: 'Test Project',
@@ -86,8 +83,6 @@ describe('Task Routes', () => {
     });
     await mockProject.save();
 
-    
-    
     const response = await request(app)
       .post(`${projectRoute}/${mockProject._id}/new-task`)
       .set('Authorization', `Bearer ${mockToken}`)
@@ -109,7 +104,6 @@ describe('Task Routes', () => {
     expect(response.body.data.title).toBe('Test Tasks');
   }, 15000);
 
-
   it('should not create a new task for unauthorized employee user', async () => {
     const mockUser = {
       _id: new mongoose.Types.ObjectId(),
@@ -120,7 +114,6 @@ describe('Task Routes', () => {
     const secretKey = process.env.SECRET_KEY || 'secret';
     const mockToken = jwt.sign(mockUser, secretKey);
 
-
     const mockProject = new Project({
       _id: new mongoose.Types.ObjectId(),
       name: 'Test Project',
@@ -130,7 +123,6 @@ describe('Task Routes', () => {
       dueDate: new Date(),
     });
     await mockProject.save();
-
 
     const response = await request(app)
       .post(`${projectRoute}/${mockProject._id}/new-task`)
@@ -151,8 +143,6 @@ describe('Task Routes', () => {
       'You are not authorized to create a task'
     );
   });
-
-
 
   it('should not create a new task for invalid user type', async () => {
     const mockUser = {
@@ -164,7 +154,6 @@ describe('Task Routes', () => {
     const secretKey = process.env.SECRET_KEY || 'secret';
     const mockToken = jwt.sign(mockUser, secretKey);
 
-
     const mockProject = new Project({
       _id: new mongoose.Types.ObjectId(),
       name: 'Test Project',
@@ -174,7 +163,6 @@ describe('Task Routes', () => {
       dueDate: new Date(),
     });
     await mockProject.save();
-
 
     const response = await request(app)
       .post(`${projectRoute}/${mockProject._id}/new-task`)
@@ -195,7 +183,6 @@ describe('Task Routes', () => {
       'You are not authorized to create a task'
     );
   });
-
 
   it('should return 403 when creating a project with insufficient authorization', async () => {
     const mockUser = {
@@ -217,7 +204,6 @@ describe('Task Routes', () => {
     });
     await mockProject.save();
 
-
     const response = await request(app)
       .post(`${projectRoute}/${mockProject._id}/new-task`)
       .set('Authorization', `Bearer ${mockToken}`)
@@ -238,12 +224,8 @@ describe('Task Routes', () => {
     );
   });
 
-
-
-
   it('should get a task under a project by ID', async () => {
-
-     const mockProject = new Project({
+    const mockProject = new Project({
       _id: new mongoose.Types.ObjectId(),
       name: 'Test Project',
       description: 'Test Project Description',
@@ -253,7 +235,7 @@ describe('Task Routes', () => {
     });
     await mockProject.save();
 
-     const mockTask = new Task({
+    const mockTask = new Task({
       title: 'Test Tasks',
       description: 'Task description',
       dueDate: new Date(),
@@ -263,7 +245,7 @@ describe('Task Routes', () => {
       startDate: new Date(),
     });
 
-    const savedTask = await mockTask.save()
+    const savedTask = await mockTask.save();
 
     const response = await request(app)
       .get(`${taskRoute}/project/${savedTask.project}`)
@@ -273,154 +255,133 @@ describe('Task Routes', () => {
     expect(response.body.success).toBe(true);
     expect(response.body.data).toBeInstanceOf(Array);
     expect(response.body.data).toHaveLength(1);
-    expect(response.body.data[0].title).toBe(
-      'Test Tasks'
-    );
+    expect(response.body.data[0].title).toBe('Test Tasks');
   });
-
-
 
   it('should get a task by ID', async () => {
-
     const mockTask = new Task({
-     title: 'Test Tasks',
-     description: 'Task description',
-     dueDate: new Date(),
-     createdBy: new mongoose.Types.ObjectId(),
-     assignedTo: new mongoose.Types.ObjectId(),
-     project: new mongoose.Types.ObjectId(),
-     startDate: new Date(),
-   });
-
-   const savedTask = await mockTask.save()
-
-   const response = await request(app)
-     .get(`${taskRoute}/${savedTask._id}`)
-     .set('Authorization', `Bearer ${mockToken}`);
-
-   expect(response.status).toBe(statusCode.success);
-   expect(response.body.success).toBe(true);
-   expect(response.body.data.title).toBe(
-     'Test Tasks'
-   );
- });
-
-
- it('should return 404 if task not found', async () => {
-  const nonExistentTaskId =
-    new mongoose.Types.ObjectId();
-
-  const response = await request(app)
-    .get(`${taskRoute}/${nonExistentTaskId}`)
-    .set('Authorization', `Bearer ${mockToken}`);
-
-  expect(response.status).toBe(404);
-  expect(response.body.success).toBe(false);
-  expect(response.body.error).toBe('Task not found');
-});
-
-
-it('should handle invalid task ID', async () => {
-  const invalidTaskId = new mongoose.Types.ObjectId();
-
-  const response = await request(app)
-    .get(`${taskRoute}/${invalidTaskId}dza1`)
-    .set('Authorization', `Bearer ${mockToken}`);
-
-  expect(response.status).toBe(statusCode.notFound);
-  expect(response.body.success).toBe(false);
-  expect(response.body.error).toBe('Resource not found');
-});
-
-
-
-it('should update an existing task', async () => {
-
-  const mockProject = new Project({
-    _id: new mongoose.Types.ObjectId(),
-    name: 'Test Project',
-    description: 'Test Project Description',
-    createdBy: mockUser._id,
-    startDate: new Date(),
-    dueDate: new Date(),
-  });
-  await mockProject.save();
-
-  const newTask = new Task({
-    title: 'Test Tasks',
-    description: 'Task description',
-    dueDate: new Date(),
-    createdBy: mockUser._id,
-    assignedTo: new mongoose.Types.ObjectId(),
-    project: mockProject._id,
-    startDate: new Date(),
-  });
-
-  const savedTask = await newTask.save();
-
-  const response = await request(app)
-    .patch(`${taskRoute}/${savedTask._id}/update`)
-    .set('Authorization', `Bearer ${mockToken}`)
-    .send({
-      title: 'Updated Task title',
-      description: 'Updated Test Description',
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
     });
 
-  expect(response.status).toBe(statusCode.success);
-  expect(response.body.success).toBe(true);
-  expect(response.body.message).toBe(
-    'Task updated successfully'
-  );
-  expect(response.body.task.title).toBe(
-    'Updated Task title'
-  );
-  expect(response.status).toBe(statusCode.success);
-  const updatedTask = await Task.findById(
-    newTask._id
-  );
-  expect(updatedTask?.title).toBe(
-    'Updated Task title'
-  );
-}, 15000);
+    const savedTask = await mockTask.save();
 
+    const response = await request(app)
+      .get(`${taskRoute}/${savedTask._id}`)
+      .set('Authorization', `Bearer ${mockToken}`);
 
-
- it('should handle updating a task with the same title', async () => {
-  const mockProject = new Project({
-    _id: new mongoose.Types.ObjectId(),
-    name: 'Test Project',
-    description: 'Test Project Description',
-    createdBy: mockUser._id,
-    startDate: new Date(),
-    dueDate: new Date(),
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.title).toBe('Test Tasks');
   });
-  await mockProject.save();
+
+  it('should return 404 if task not found', async () => {
+    const nonExistentTaskId = new mongoose.Types.ObjectId();
+
+    const response = await request(app)
+      .get(`${taskRoute}/${nonExistentTaskId}`)
+      .set('Authorization', `Bearer ${mockToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Task not found');
+  });
+
+  it('should handle invalid task ID', async () => {
+    const invalidTaskId = new mongoose.Types.ObjectId();
+
+    const response = await request(app)
+      .get(`${taskRoute}/${invalidTaskId}dza1`)
+      .set('Authorization', `Bearer ${mockToken}`);
+
+    expect(response.status).toBe(statusCode.notFound);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Resource not found');
+  });
+
+  it('should update an existing task', async () => {
+    const mockProject = new Project({
+      _id: new mongoose.Types.ObjectId(),
+      name: 'Test Project',
+      description: 'Test Project Description',
+      createdBy: mockUser._id,
+      startDate: new Date(),
+      dueDate: new Date(),
+    });
+    await mockProject.save();
+
+    const newTask = new Task({
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: mockUser._id,
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: mockProject._id,
+      startDate: new Date(),
+    });
+
+    const savedTask = await newTask.save();
+
+    const response = await request(app)
+      .patch(`${taskRoute}/${savedTask._id}/update`)
+      .set('Authorization', `Bearer ${mockToken}`)
+      .send({
+        title: 'Updated Task title',
+        description: 'Updated Test Description',
+      });
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.message).toBe(
+      'Task updated successfully'
+    );
+    expect(response.body.task.title).toBe(
+      'Updated Task title'
+    );
+    expect(response.status).toBe(statusCode.success);
+    const updatedTask = await Task.findById(newTask._id);
+    expect(updatedTask?.title).toBe('Updated Task title');
+  }, 15000);
+
+  it('should handle updating a task with the same title', async () => {
+    const mockProject = new Project({
+      _id: new mongoose.Types.ObjectId(),
+      name: 'Test Project',
+      description: 'Test Project Description',
+      createdBy: mockUser._id,
+      startDate: new Date(),
+      dueDate: new Date(),
+    });
+    await mockProject.save();
 
     const existingTaskData = new Task({
       title: 'Updated Task Title',
-    description: 'Test Description',
-    dueDate: new Date(),
-    createdBy: mockUser._id,
-    assignedTo: new mongoose.Types.ObjectId(),
-    project: mockProject._id,
-    startDate: new Date(),
+      description: 'Test Description',
+      dueDate: new Date(),
+      createdBy: mockUser._id,
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: mockProject._id,
+      startDate: new Date(),
     });
 
-    const existingTask =
-      await existingTaskData.save();
+    const existingTask = await existingTaskData.save();
 
-      const existingTaskData1 = new Task({
+    const existingTaskData1 = new Task({
       title: 'Updated Title',
-    description: 'Test Description',
-    dueDate: new Date(),
-    createdBy: mockUser._id,
-    assignedTo: new mongoose.Types.ObjectId(),
-    project: mockProject._id,
-    startDate: new Date(),
+      description: 'Test Description',
+      dueDate: new Date(),
+      createdBy: mockUser._id,
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: mockProject._id,
+      startDate: new Date(),
     });
 
-    const existingTask1 =
-      await existingTaskData1.save();
+    const existingTask1 = await existingTaskData1.save();
 
     const response = await request(app)
       .patch(`${taskRoute}/${existingTask1._id}/update`)
@@ -449,16 +410,15 @@ it('should update an existing task', async () => {
 
     const existingTaskData = new Task({
       title: 'Updated Task Title',
-    description: 'Test Description',
-    dueDate: new Date(),
-    createdBy: mockUser._id,
-    assignedTo: new mongoose.Types.ObjectId(),
-    project: savedProject._id,
-    startDate: new Date(),
+      description: 'Test Description',
+      dueDate: new Date(),
+      createdBy: mockUser._id,
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: savedProject._id,
+      startDate: new Date(),
     });
 
-    const existingTask =
-      await existingTaskData.save();
+    const existingTask = await existingTaskData.save();
 
     const response = await request(app)
       .delete(`${taskRoute}/${existingTask._id}/delete`)
@@ -475,7 +435,6 @@ it('should update an existing task', async () => {
   });
 
   it('should handle deleting non-existent task', async () => {
-
     const newProject = new Project({
       name: 'Test Project',
       description: 'Test Description',
@@ -487,24 +446,20 @@ it('should update an existing task', async () => {
 
     const existingTaskData = new Task({
       title: 'Updated Task Title',
-    description: 'Test Description',
-    dueDate: new Date(),
-    createdBy: mockUser._id,
-    assignedTo: new mongoose.Types.ObjectId(),
-    project: savedProject._id,
-    startDate: new Date(),
+      description: 'Test Description',
+      dueDate: new Date(),
+      createdBy: mockUser._id,
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: savedProject._id,
+      startDate: new Date(),
     });
 
-    const existingTask =
-      await existingTaskData.save();
-  
-    const nonExistingTaskId = 
-    new mongoose.Types.ObjectId()
+    const existingTask = await existingTaskData.save();
+
+    const nonExistingTaskId = new mongoose.Types.ObjectId();
 
     const response = await request(app)
-      .delete(
-        `${taskRoute}/${nonExistingTaskId}/delete`
-      )
+      .delete(`${taskRoute}/${nonExistingTaskId}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
     expect(response.status).toBe(statusCode.notFound);
@@ -512,10 +467,7 @@ it('should update an existing task', async () => {
     expect(response.body.error).toBe('Task not found');
   });
 
-
   it('should handle unauthorized user deleting task', async () => {
-
-
     const newProject = new Project({
       name: 'Test Project',
       description: 'Test Description',
@@ -527,27 +479,24 @@ it('should update an existing task', async () => {
 
     const TaskData = new Task({
       title: 'Task Title',
-    description: 'Test Description',
-    dueDate: new Date(),
-    createdBy:  new mongoose.Types.ObjectId(),
-    assignedTo: new mongoose.Types.ObjectId(),
-    project:  savedProject._id,
-    startDate: new Date(),
+      description: 'Test Description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: savedProject._id,
+      startDate: new Date(),
     });
 
-    const newTaskData =
-    await TaskData.save();
+    const newTaskData = await TaskData.save();
 
     const response = await request(app)
-      .delete(
-        `${taskRoute}/${newTaskData._id}/delete`
-      )
+      .delete(`${taskRoute}/${newTaskData._id}/delete`)
       .set('Authorization', `Bearer ${mockToken}`);
 
     expect(response.status).toBe(statusCode.forbidden);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toBe('You are not authorized to perform this action');
+    expect(response.body.error).toBe(
+      'You are not authorized to perform this action'
+    );
   });
-
-
-})
+});

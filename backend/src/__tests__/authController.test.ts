@@ -23,7 +23,7 @@ const mockUser = {
 const secretKey = process.env.SECRET_KEY || 'secret';
 const mockToken = jwt.sign(mockUser, secretKey);
 
-beforeAll(() => {
+beforeAll(async () => {
   app.use(authenticate);
 });
 
@@ -314,7 +314,7 @@ describe('forgotPassword', () => {
     const newUser = new User({
       id: mockUser._id,
       name: 'Test Employee Admin',
-      email: 'testemplo@email.com',
+      email: 'reachemmanueladams@gmail.com',
       password: 'testpassword',
       level: mockUser.level,
       yearsOfWork: 5,

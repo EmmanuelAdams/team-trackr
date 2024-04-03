@@ -78,8 +78,6 @@ definitions:
         type: string
         minLength: 3
         maxLength: 300
-      createdBy:
-        type: string
       assignedTo:
         type: array
         items:

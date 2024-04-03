@@ -24,6 +24,9 @@ paths:
                   enum: [Junior, Mid-level, Senior, CEO]
                 yearsOfWork:
                   type: number
+                userType:
+                  type: string
+                  enum: ['Employee', 'Organization']
                 availability:
                   type: object
                   properties:
@@ -94,6 +97,9 @@ paths:
                   enum: [Junior, Mid-level, Senior, CEO]
                 yearsOfWork:
                   type: number
+                userType:
+                  type: string
+                  enum: ['Employee', 'Organization']
                 organizationName:
                   type: string
       responses:
