@@ -17,11 +17,10 @@ export interface UserDocument extends Document {
   userType: 'Employee' | 'Organization';
   organizationName?: string;
   employees?: string[];
-  passwordToken?: string;
-  passwordExpire?: Date;
-  getPasswordToken: () => string;
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
+  getResetPasswordToken: () => string;
   createdAt: Date;
-  verified: boolean;
 }
 
 const UserSchema = new Schema<UserDocument>({
@@ -100,39 +99,35 @@ const UserSchema = new Schema<UserDocument>({
     },
     default: [],
   },
-  passwordToken: {
+  resetPasswordToken: {
     type: String,
     default: '',
   },
-  passwordExpire: {
+  resetPasswordExpire: {
     type: Date,
   },
   createdAt: {
     type: Date,
     default: Date.now,
   },
-   verified: {
-    type: Boolean,
-    default: false
-   }
 });
 
 // Generate and hash password token
-UserSchema.methods.getPasswordToken = function () {
+UserSchema.methods.getResetPasswordToken = function () {
   // Generate token
-  const token = crypto.randomBytes(20).toString('hex');
+  const resetToken = crypto.randomBytes(20).toString('hex');
 
   // Hash token and set to resetPasswordToken field
-  this.passwordToken = crypto
+  this.resetPasswordToken = crypto
     .createHash('sha256')
-    .update(token)
+    .update(resetToken)
     .digest('hex');
 
   // Set expiration
-  this.passwordExpire =
+  this.resetPasswordExpire =
     Date.now() + 24 * 60 * 60 * 1000;
 
-  return token;
+  return resetToken;
 };
 
 export const User = model<UserDocument>('User', UserSchema);

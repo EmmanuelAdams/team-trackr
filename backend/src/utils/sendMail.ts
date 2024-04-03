@@ -14,10 +14,10 @@ const sendEmail = async (options: {
   });
 
   const message = {
-    from: 'Team Trackr',      
+    from: 'Team Trackr',
     to: options.email,
     subject: options.subject,
-    html: options.message,
+    text: options.message,
   };
 
   const info = await transporter.sendMail(message);

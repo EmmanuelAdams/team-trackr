@@ -11,7 +11,6 @@ import errorHandler from './middlewares/error';
 import swaggerSpec from './swaggerSpec';
 import morgan from 'morgan';
 
-
 dotenv.config();
 require('./db');
 
