@@ -1,12 +1,18 @@
 import { statusCode } from './../statusCodes';
 import { NextFunction, Request, Response } from 'express';
 import { createHash } from 'crypto';
-import bcrypt from 'bcrypt';
+import bcryptjs from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User, UserDocument } from '../models/User';
 import ErrorResponse from '../utils/errorResponse';
 import asyncHandler from '../middlewares/async';
 import sendEmail from '../utils/sendMail';
+import * as userController from './user.controller'
+
+
+async function userExists(userId: string): Promise<any> {
+  return User.findById(userId);
+}
 
 export const logoutUser = asyncHandler(
   async (
@@ -54,7 +60,7 @@ export const loginUser = asyncHandler(
       );
     }
 
-    const isPasswordValid = await bcrypt.compare(
+    const isPasswordValid = await bcryptjs.compare(
       password,
       existingUser.password
     );
@@ -91,6 +97,7 @@ export const loginUser = asyncHandler(
       });
   }
 );
+
 
 export const registerEmployee = asyncHandler(
   async (
@@ -158,7 +165,7 @@ export const registerEmployee = asyncHandler(
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
     if (availability) {
       if (
@@ -198,10 +205,22 @@ export const registerEmployee = asyncHandler(
       newUser as UserDocument
     );
 
+
+    const secretKey = process.env.SECRET_KEY as string;
+
+    const tokenPayload = {
+      userId: createdUser._id,
+    };
+
+    const token = jwt.sign(tokenPayload, secretKey, {
+      expiresIn: '7d',
+    });
+
     return res.status(statusCode.created).json({
       success: true,
       message: 'Employee registered successfully',
       user: createdUser,
+      token: token
     });
   }
 );
@@ -231,7 +250,7 @@ export const registerOrganization = asyncHandler(
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcryptjs.hash(password, 10);
 
     const newUser: Partial<UserDocument> = {
       name,
@@ -251,11 +270,37 @@ export const registerOrganization = asyncHandler(
       newUser as UserDocument
     );
 
+    const verifyToken = createdUser.getPasswordToken()
+
+    const verifyUrl = `${req.protocol}://${req.get(
+      'host'
+    )}/api/v1/auth/verify/${createdUser._id}/${verifyToken}`;
+
+    const message = `Dear ${createdUser.name},\n\nThank you for signing up.\n\nTo verify your email, please click on the link below:\n\n[Verification Link]: ${verifyUrl}\n\nThis link will expire in ${createdUser.passwordExpire}, so be sure to complete the verification process promptly.\n\nThank you once again for signing up.\n\nBest regards,\nTeam Trackr`;
+ 
+    await sendEmail({
+      email: createdUser.email,
+      subject: 'Welcome!!',
+      message,
+    });
+
+
     return res.status(statusCode.created).json({
       success: true,
-      message: 'Organization registered successfully',
+      data: 'Verification Email sent!',
       user: createdUser,
+      url: verifyUrl
     });
+
+    // const secretKey = process.env.SECRET_KEY as string;
+
+    // const tokenPayload = {
+    //   userId: createdUser._id,
+    // };
+
+    // const token = jwt.sign(tokenPayload, secretKey, {
+    //   expiresIn: '7d',
+    // });
   }
 );
 
@@ -278,7 +323,7 @@ export const forgotPassword = asyncHandler(
       );
     }
 
-    const resetToken = user?.getResetPasswordToken();
+    const resetToken = user?.getPasswordToken();
 
     await user?.save({ validateBeforeSave: false });
 
@@ -286,7 +331,7 @@ export const forgotPassword = asyncHandler(
       'host'
     )}/api/v1/auth/reset-password/${resetToken}`;
 
-    const message = `Dear ${user.name},\n\nYou are receiving this email because a request has been made to reset your password. If you did not initiate this request, please disregard this message.\n\nTo reset your password, please click on the link below:\n\n[Reset Password Link]: ${resetUrl}\n\nThis link will expire in ${user.resetPasswordExpire}, so be sure to complete the password reset process promptly.\n\nThank you for using our service.\n\nBest regards,\nTeam Trackr`;
+    const message = `Dear ${user.name},\n\nYou are receiving this email because a request has been made to reset your password. If you did not initiate this request, please disregard this message.\n\nTo reset your password, please click on the link below:\n\n[Reset Password Link]: ${resetUrl}\n\nThis link will expire in ${user.passwordExpire}, so be sure to complete the password reset process promptly.\n\nThank you for using our service.\n\nBest regards,\nTeam Trackr`;
 
     await sendEmail({
       email: user?.email,
@@ -298,8 +343,8 @@ export const forgotPassword = asyncHandler(
       .status(statusCode.success)
       .json({ success: true, data: 'Email sent!' });
 
-    user.resetPasswordToken = '';
-    user.resetPasswordExpire = undefined;
+    user.passwordToken = '';
+    user.passwordExpire = undefined;
 
     await user.save({ validateBeforeSave: false });
   }
@@ -311,13 +356,13 @@ export const resetPassword = asyncHandler(
     res: Response,
     next: NextFunction
   ) => {
-    const resetPasswordToken = createHash('sha256')
-      .update(req.params.resettoken)
+    const passwordToken = createHash('sha256')
+      .update(req.params.resetToken)
       .digest('hex');
 
     const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
+      passwordToken,
+      passwordExpire: { $gt: Date.now() },
     });
 
     if (!user) {
@@ -340,14 +385,14 @@ export const resetPassword = asyncHandler(
       );
     }
 
-    const hashedResetPassword = await bcrypt.hash(
+    const hashedResetPassword = await bcryptjs.hash(
       newResetPassword,
       10
     );
 
     user.password = hashedResetPassword;
-    user.resetPasswordToken = '';
-    user.resetPasswordExpire = undefined;
+    user.passwordToken = '';
+    user.passwordExpire = undefined;
     await user.save();
 
     res.status(statusCode.success).json({
@@ -356,3 +401,28 @@ export const resetPassword = asyncHandler(
     });
   }
 );
+
+
+
+export const verifyUser = async (
+  user: string
+) => {
+  // const user = req.user?._id;
+
+  if (!user) {
+    return new ErrorResponse(
+      'User ID is missing in the request',
+      statusCode.badRequest
+    );
+  }
+
+  if (!(await userController.userExists(user))) {
+    return new ErrorResponse(
+      'User does not exist',
+      statusCode.badRequest
+    );
+  }
+
+  await userController.verifyUser(user);
+  return { message: "Verified Successfully" };
+}; 
