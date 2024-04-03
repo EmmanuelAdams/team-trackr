@@ -19,8 +19,9 @@ const userRoute = '/api/v1/users';
 const loginRoute = '/api/v1/auth/login';
 const registerRoute = '/api/v1/auth/register';
 
-beforeAll(() => {
+beforeAll(async () => {
   app.use(authenticate);
+  await User.deleteMany();
 });
 
 afterAll(async () => {

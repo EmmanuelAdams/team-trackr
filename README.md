@@ -33,6 +33,9 @@ To run TeamTrackr locally, follow these steps:
 - Express.js
 - MongoDB
 - React
+- TypeScript
+- Jest
+- Swagger.io
 
 ## Getting Started
 

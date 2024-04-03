@@ -7,7 +7,6 @@ import mongoose from 'mongoose';
 import authenticate from '../middlewares/authentication';
 import { statusCode } from '../statusCodes';
 
-
 const mockUser = {
   _id: new mongoose.Types.ObjectId(),
   level: 'Junior',
@@ -29,58 +28,52 @@ afterAll(async () => {
   await server.close();
 });
 
-
 describe('Comment Routes', () => {
- it('should get all comment routes', async () => {
-
+  it('should get all comment routes', async () => {
     const comment1 = new Comment({
-        text: 'Test comment 1',
-        createdAt: new Date(),
-        task: new mongoose.Types.ObjectId(),
-        createdBy: new mongoose.Types.ObjectId(),
-      });
-  
-      const comment2 = new Comment({
-        text: 'Test comment 2',
-        createdAt: new Date(),
-        task: new mongoose.Types.ObjectId(),
-        createdBy: new mongoose.Types.ObjectId(),
+      text: 'Test comment 1',
+      createdAt: new Date(),
+      task: new mongoose.Types.ObjectId(),
+      createdBy: new mongoose.Types.ObjectId(),
     });
-  
-      await comment1.save();
-      await comment2.save();
-  
 
-      const response = await request(app).get(commentRoute);
+    const comment2 = new Comment({
+      text: 'Test comment 2',
+      createdAt: new Date(),
+      task: new mongoose.Types.ObjectId(),
+      createdBy: new mongoose.Types.ObjectId(),
+    });
+
+    await comment1.save();
+    await comment2.save();
+
+    const response = await request(app).get(commentRoute);
 
     expect(response.status).toBe(statusCode.success);
     expect(response.body.success).toBe(true);
     expect(response.body.data).toBeInstanceOf(Array);
-    expect(response.body.data).toHaveLength(2); 
+    expect(response.body.data).toHaveLength(2);
     expect(response.body.data[0].text).toBe(
-      'Test comment 1'
-    );
-    expect(response.body.data[1].text).toBe(
       'Test comment 2'
     );
-    expect(response.body.count).toBe(2)
+    expect(response.body.data[1].text).toBe(
+      'Test comment 1'
+    );
+    expect(response.body.count).toBe(2);
+  }, 15000);
 
- }, 15000)
-
- it('should create a new comment under a task', async () => {
+  it('should create a new comment under a task', async () => {
     const mockTask = new Task({
-        title: 'Test Tasks',
-        description: 'Task description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
     });
     await mockTask.save();
 
-    
-    
     const response = await request(app)
       .post(`${taskRoute}/${mockTask._id}/new-comment`)
       .set('Authorization', `Bearer ${mockToken}`)
@@ -99,159 +92,145 @@ describe('Comment Routes', () => {
     expect(response.body.data.text).toBe('Test Comment');
   }, 15000);
 
-
-  
-
-  
-  
-
   it('should get a comment by ID', async () => {
-
     const mockComment = new Comment({
-        text: 'Test Comment',
-        createdAt: new Date(),
-        task: new mongoose.Types.ObjectId(),
-        createdBy: new mongoose.Types.ObjectId(),
-   });
-
-   const savedComment = await mockComment.save()
-
-   const response = await request(app)
-     .get(`${commentRoute}/${savedComment._id}`)
-     .set('Authorization', `Bearer ${mockToken}`);
-
-   expect(response.status).toBe(statusCode.success);
-   expect(response.body.success).toBe(true);
-   expect(response.body.data.text).toBe(
-     'Test Comment'
-   );
- });
-
-
- it('should return 404 if comment not found', async () => {
-  const nonExistentCommentId =
-    new mongoose.Types.ObjectId();
-
-  const response = await request(app)
-    .get(`${commentRoute}/${nonExistentCommentId}`)
-    .set('Authorization', `Bearer ${mockToken}`);
-
-  expect(response.status).toBe(404);
-  expect(response.body.success).toBe(false);
-  expect(response.body.error).toBe('Comment not found');
-});
-
-
-
-it('should update an existing comment', async () => {
-
-  const mockTask = new Task({
-    title: 'Test Tasks',
-    description: 'Task description',
-    dueDate: new Date(),
-    createdBy: new mongoose.Types.ObjectId(),
-    assignedTo: new mongoose.Types.ObjectId(),
-    project: new mongoose.Types.ObjectId(),
-    startDate: new Date(),
-  });
-  await mockTask.save();
-
-  const newComment = new Comment({
-    text: 'Test Comment',
-    createdAt: new Date(),
-    task: mockTask._id,
-    createdBy: mockUser._id,
-  });
-
-  const savedComment = await newComment.save();
-
-  const response = await request(app)
-    .patch(`${commentRoute}/${savedComment._id}/update`)
-    .set('Authorization', `Bearer ${mockToken}`)
-    .send({
-      text: 'Updated comment text',
+      text: 'Test Comment',
+      createdAt: new Date(),
+      task: new mongoose.Types.ObjectId(),
+      createdBy: new mongoose.Types.ObjectId(),
     });
 
-  expect(response.status).toBe(statusCode.success);
-  expect(response.body.success).toBe(true);
-  expect(response.body.message).toBe(
-    'Comment updated successfully'
-  );
-  expect(response.body.comment.text).toBe(
-    'Updated comment text'
-  );
-  expect(response.status).toBe(statusCode.success);
-  const updatedComment = await Comment.findById(
-    newComment._id
-  );
-  expect(updatedComment?.text).toBe(
-    'Updated comment text'
-  );
-}, 15000);
+    const savedComment = await mockComment.save();
 
-it('should handle unauthorized user updating comment', async () => {
+    const response = await request(app)
+      .get(`${commentRoute}/${savedComment._id}`)
+      .set('Authorization', `Bearer ${mockToken}`);
 
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.text).toBe('Test Comment');
+  });
 
+  it('should return 404 if comment not found', async () => {
+    const nonExistentCommentId =
+      new mongoose.Types.ObjectId();
+
+    const response = await request(app)
+      .get(`${commentRoute}/${nonExistentCommentId}`)
+      .set('Authorization', `Bearer ${mockToken}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body.success).toBe(false);
+    expect(response.body.error).toBe('Comment not found');
+  });
+
+  it('should update an existing comment', async () => {
+    const mockTask = new Task({
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
+    });
+    await mockTask.save();
+
+    const newComment = new Comment({
+      text: 'Test Comment',
+      createdAt: new Date(),
+      task: mockTask._id,
+      createdBy: mockUser._id,
+    });
+
+    const savedComment = await newComment.save();
+
+    const response = await request(app)
+      .patch(`${commentRoute}/${savedComment._id}/update`)
+      .set('Authorization', `Bearer ${mockToken}`)
+      .send({
+        text: 'Updated comment text',
+      });
+
+    expect(response.status).toBe(statusCode.success);
+    expect(response.body.success).toBe(true);
+    expect(response.body.message).toBe(
+      'Comment updated successfully'
+    );
+    expect(response.body.comment.text).toBe(
+      'Updated comment text'
+    );
+    expect(response.status).toBe(statusCode.success);
+    const updatedComment = await Comment.findById(
+      newComment._id
+    );
+    expect(updatedComment?.text).toBe(
+      'Updated comment text'
+    );
+  }, 15000);
+
+  it('should handle unauthorized user updating comment', async () => {
     const newTask = new Task({
-        title: 'Test Tasks',
-        description: 'Task description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
     });
 
     const savedTask = await newTask.save();
 
     const commentData = new Comment({
-        text: 'Test Comment',
-        createdAt: new Date(),
-        task: newTask._id,
-        createdBy: new mongoose.Types.ObjectId(),
+      text: 'Test Comment',
+      createdAt: new Date(),
+      task: newTask._id,
+      createdBy: new mongoose.Types.ObjectId(),
     });
 
-    const newCommentData =
-    await commentData.save();
+    const newCommentData = await commentData.save();
 
     const response = await request(app)
-    .patch(`${commentRoute}/${newCommentData._id}/update`)
-    .set('Authorization', `Bearer ${mockToken}`)
-    .send({
-      text: 'Updated comment text',
-    });
-      
+      .patch(`${commentRoute}/${newCommentData._id}/update`)
+      .set('Authorization', `Bearer ${mockToken}`)
+      .send({
+        text: 'Updated comment text',
+      });
 
     expect(response.status).toBe(statusCode.forbidden);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toBe('Not authorized to perform this action');
+    expect(response.body.error).toBe(
+      'Not authorized to perform this action'
+    );
   });
 
- 
   it('should delete an existing comment', async () => {
     const newTask = new Task({
-        title: 'Test Tasks',
-        description: 'Task description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
     });
     const savedTask = await newTask.save();
 
     const existingCommentData = new Comment({
-        text: 'Test Comment',
-        createdAt: new Date(),
-        task: newTask._id,
-        createdBy: mockUser._id,
+      text: 'Test Comment',
+      createdAt: new Date(),
+      task: newTask._id,
+      createdBy: mockUser._id,
     });
 
     const existingComment =
       await existingCommentData.save();
 
     const response = await request(app)
-      .delete(`${commentRoute}/${existingComment._id}/delete`)
+      .delete(
+        `${commentRoute}/${existingComment._id}/delete`
+      )
       .set('Authorization', `Bearer ${mockToken}`);
 
     expect(response.status).toBe(statusCode.success);
@@ -265,30 +244,29 @@ it('should handle unauthorized user updating comment', async () => {
   });
 
   it('should handle deleting non-existent comment', async () => {
-
     const newTask = new Task({
-       title: 'Test Tasks',
-        description: 'Task description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
     });
     const savedTask = await newTask.save();
 
     const existingCommentData = new Comment({
-        text: 'Test Comment',
-        createdAt: new Date(),
-        task: newTask._id,
-        createdBy: new mongoose.Types.ObjectId(),
+      text: 'Test Comment',
+      createdAt: new Date(),
+      task: newTask._id,
+      createdBy: new mongoose.Types.ObjectId(),
     });
 
     const existingComment =
       await existingCommentData.save();
-  
-    const nonExistingCommentId = 
-    new mongoose.Types.ObjectId()
+
+    const nonExistingCommentId =
+      new mongoose.Types.ObjectId();
 
     const response = await request(app)
       .delete(
@@ -301,31 +279,27 @@ it('should handle unauthorized user updating comment', async () => {
     expect(response.body.error).toBe('Comment not found');
   });
 
-
   it('should handle unauthorized user deleting comment', async () => {
-
-
     const newTask = new Task({
-        title: 'Test Tasks',
-        description: 'Task description',
-        dueDate: new Date(),
-        createdBy: new mongoose.Types.ObjectId(),
-        assignedTo: new mongoose.Types.ObjectId(),
-        project: new mongoose.Types.ObjectId(),
-        startDate: new Date(),
+      title: 'Test Tasks',
+      description: 'Task description',
+      dueDate: new Date(),
+      createdBy: new mongoose.Types.ObjectId(),
+      assignedTo: new mongoose.Types.ObjectId(),
+      project: new mongoose.Types.ObjectId(),
+      startDate: new Date(),
     });
 
     const savedTask = await newTask.save();
 
     const commentData = new Comment({
-        text: 'Test Comment',
-        createdAt: new Date(),
-        task: newTask._id,
-        createdBy: new mongoose.Types.ObjectId(),
+      text: 'Test Comment',
+      createdAt: new Date(),
+      task: newTask._id,
+      createdBy: new mongoose.Types.ObjectId(),
     });
 
-    const newCommentData =
-    await commentData.save();
+    const newCommentData = await commentData.save();
 
     const response = await request(app)
       .delete(
@@ -335,8 +309,8 @@ it('should handle unauthorized user updating comment', async () => {
 
     expect(response.status).toBe(statusCode.forbidden);
     expect(response.body.success).toBe(false);
-    expect(response.body.error).toBe('Not authorized to perform this action');
+    expect(response.body.error).toBe(
+      'Not authorized to perform this action'
+    );
   });
-
-
-})
+});

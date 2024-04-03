@@ -22,7 +22,7 @@ paths:
                     type: integer
                     description: The number of comments in the response.
                     example: 5
-                  tasks:
+                  comments:
                     type: array
                     items:
                       $ref: '#/definitions/Comment'
