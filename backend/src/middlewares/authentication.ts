@@ -1,4 +1,4 @@
-import { statusCode } from './../statusCodes';
+import { statusCode } from '../statusCodes';
 import { Response, Request, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import ErrorResponse from '../utils/errorResponse';
@@ -79,5 +79,5 @@ const authenticate = (
     );
   }
 };
- 
+
 export = authenticate;

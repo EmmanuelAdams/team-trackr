@@ -4,7 +4,7 @@ import { Project } from '../models/Project';
 import { Comment } from '../models/Comment';
 import ErrorResponse from '../utils/errorResponse';
 import asyncHandler from '../middlewares/async';
-import { statusCode } from './../statusCodes';
+import { statusCode } from '../statusCodes';
 
 export const validateTaskInputsLength = (
   req: Request,
@@ -125,7 +125,7 @@ export const createTask = asyncHandler(
         const savedTask = await newTask.save();
 
         res.status(statusCode.created).json({
-          success: true, 
+          success: true,
           data: savedTask,
           message: 'Task created successfully',
         });
@@ -142,7 +142,7 @@ export const createTask = asyncHandler(
   }
 );
 
-export const getTask = asyncHandler( 
+export const getTask = asyncHandler(
   async (
     req: Request,
     res: Response,
@@ -214,7 +214,7 @@ export const updateTaskInProject = asyncHandler(
           new ErrorResponse(
             'Project not found',
             statusCode.notFound
-          ) 
+          )
         );
       }
 

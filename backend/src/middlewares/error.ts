@@ -1,4 +1,4 @@
-import { statusCode } from './../statusCodes';
+import { statusCode } from '../statusCodes';
 import { Request, Response, NextFunction } from 'express';
 import ErrorResponse from '../utils/errorResponse';
 

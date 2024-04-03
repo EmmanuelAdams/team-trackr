@@ -1,4 +1,4 @@
-import { statusCode } from './../statusCodes';
+import { statusCode } from '../statusCodes';
 import { NextFunction, Request, Response } from 'express';
 import { createHash } from 'crypto';
 import bcrypt from 'bcrypt';

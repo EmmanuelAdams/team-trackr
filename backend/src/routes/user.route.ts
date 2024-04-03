@@ -1,7 +1,7 @@
 import {
   getLoggedInUser,
   updatePassword,
-} from './../controllers/user.controller';
+} from '../controllers/user.controller';
 import express from 'express';
 import {
   getAllUsers,

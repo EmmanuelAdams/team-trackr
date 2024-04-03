@@ -1,7 +1,7 @@
 import {
   forgotPassword,
   resetPassword,
-} from './../controllers/auth.controller';
+} from '../controllers/auth.controller';
 import express from 'express';
 import {
   registerEmployee,

@@ -1,4 +1,4 @@
-import { statusCode } from './../statusCodes';
+import { statusCode } from '../statusCodes';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 import request from 'supertest';
