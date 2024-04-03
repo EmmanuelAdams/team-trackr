@@ -1,15 +1,9 @@
 import { statusCode } from './../statusCodes';
 import { Request, Response, NextFunction } from 'express';
 import asyncHandler from '../middlewares/async';
-import bcryptjs from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { User } from '../models/User';
 import ErrorResponse from '../utils/errorResponse';
-
-
-
-export async function userExists(user: string): Promise<any> {
-  return User.findById(user);
-}
 
 export const getAllUsers = asyncHandler(
   async (
@@ -99,7 +93,7 @@ export const updatePassword = asyncHandler(
       );
     }
 
-    const isOldPasswordValid = await bcryptjs.compare(
+    const isOldPasswordValid = await bcrypt.compare(
       password,
       user.password
     );
@@ -131,7 +125,7 @@ export const updatePassword = asyncHandler(
       );
     }
 
-    const hashedNewPassword = await bcryptjs.hash(
+    const hashedNewPassword = await bcrypt.hash(
       newPassword,
       10
     );
@@ -179,33 +173,3 @@ export const deleteUser = asyncHandler(
     });
   }
 );
-
-
-export const verifyUser = async(
-    user: string
-  ) => {
-// const user = User.findById(req.user?._id)
-
-if(!user) {
-  return(
-    new ErrorResponse(
-      'User does not exist',
-      statusCode.badRequest
-    )
-  )
-}
-if(!await userExists(user)) {
-  return(
-    new ErrorResponse(
-      'User does not exist',
-      statusCode.badRequest
-    )
-  )
-}
-
-await User.findByIdAndUpdate(user, { verified: true }, {new: true});
-return {message: "User verified"};
-
-
-}
-
