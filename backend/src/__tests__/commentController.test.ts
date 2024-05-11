@@ -23,6 +23,11 @@ beforeAll(() => {
   app.use(authenticate);
 });
 
+beforeEach(async () => {
+  await Task.deleteMany();
+});
+
+
 afterAll(async () => {
   await Comment.deleteMany();
   await server.close();
@@ -31,14 +36,14 @@ afterAll(async () => {
 describe('Comment Routes', () => {
   it('should get all comment routes', async () => {
     const comment1 = new Comment({
-      text: 'Test comment 1',
+      text: 'Test1',
       createdAt: new Date(),
       task: new mongoose.Types.ObjectId(),
       createdBy: new mongoose.Types.ObjectId(),
     });
 
     const comment2 = new Comment({
-      text: 'Test comment 2',
+      text: 'Test2',
       createdAt: new Date(),
       task: new mongoose.Types.ObjectId(),
       createdBy: new mongoose.Types.ObjectId(),
@@ -54,10 +59,10 @@ describe('Comment Routes', () => {
     expect(response.body.data).toBeInstanceOf(Array);
     expect(response.body.data).toHaveLength(2);
     expect(response.body.data[0].text).toBe(
-      'Test comment 2'
+      'Test1'
     );
     expect(response.body.data[1].text).toBe(
-      'Test comment 1'
+      'Test2'
     );
     expect(response.body.count).toBe(2);
   }, 15000);
