@@ -25,7 +25,7 @@ To run TeamTrackr locally, follow these steps:
 
 ## Documentation
 
-> View the app documentation here: [v1]()
+> View the app documentation here: [v1](https://team-trackr-robs.onrender.com/api-docs/#/)
 
 ## Technologies Used
 
