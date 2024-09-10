@@ -8,9 +8,6 @@
     "build": "npm install && npx tsc",
     "start": "nodemon --exec ts-node --files src/index.ts"
   },
-  "engines": {
-    "node": ">=14 <15"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,6 +18,7 @@
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
+    "express": "^4.20.0",
     "jsonwebtoken": "^9.0.1",
     "mongodb": "^5.7.0",
     "mongoose": "^7.4.2",
