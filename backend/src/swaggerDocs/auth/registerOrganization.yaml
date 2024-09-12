@@ -1,0 +1,107 @@
+paths:
+  /api/v1/organizations/register:
+    post:
+      summary: Register a new organization
+      description: This endpoint registers a new organization in the system.
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        description: Organization registration details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Acme Corp
+                  description: Full name of the organization
+                email:
+                  type: string
+                  format: email
+                  example: acme@example.com
+                  description: Email address of the organization
+                password:
+                  type: string
+                  format: password
+                  example: securepassword
+                  description: Password for the organization’s account
+                organizationName:
+                  type: string
+                  example: Acme Corporation
+                  description: Official name of the organization
+                industryType:
+                  type: string
+                  example: Technology
+                  description: Industry type of the organization
+                taxId:
+                  type: string
+                  example: 123456789
+                  description: Tax ID of the organization
+                numberOfEmployees:
+                  type: integer
+                  example: 100
+                  description: Number of employees in the organization
+              required:
+                - name
+                - email
+                - password
+                - organizationName
+                - industryType
+                - taxId
+                - numberOfEmployees
+      responses:
+        '201':
+          description: Organization registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  newOrganization:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        format: uuid
+                        example: 66e33cee49303058e861b3ce
+                      name:
+                        type: string
+                        example: Acme Corp
+                      email:
+                        type: string
+                        format: email
+                        example: acme@example.com
+                      organizationName:
+                        type: string
+                        example: Acme Corporation
+                      industryType:
+                        type: string
+                        example: Technology
+                      taxId:
+                        type: string
+                        example: 123456789
+                      numberOfEmployees:
+                        type: integer
+                        example: 100
+                      userType:
+                        type: string
+                        example: Organization
+        '400':
+          description: Bad request - Organization with this email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Organization with this email already exists

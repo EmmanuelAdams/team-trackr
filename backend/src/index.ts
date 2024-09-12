@@ -6,6 +6,7 @@ import projectRoutes from './routes/project.route';
 import taskRoutes from './routes/task.route';
 import userRoutes from './routes/user.route';
 import commentRoutes from './routes/comment.route';
+import organizationRoutes from './routes/organization.route';
 import swaggerUi from 'swagger-ui-express';
 import errorHandler from './middlewares/error';
 import swaggerSpec from './swaggerSpec';
@@ -39,6 +40,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/projects', projectRoutes);
 app.use('/api/v1/tasks', taskRoutes);
 app.use('/api/v1/comments', commentRoutes);
+app.use('/api/v1/organization', organizationRoutes);
 
 app.use(errorHandler);
 

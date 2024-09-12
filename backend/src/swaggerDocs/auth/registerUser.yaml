@@ -1,0 +1,154 @@
+paths:
+  /api/v1/users/register-employee:
+    post:
+      summary: Register a new employee
+      description: This endpoint registers a new employee in the system.
+      tags:
+        - Auth
+      security: []
+      requestBody:
+        description: Employee registration details
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: John Doe
+                  description: Full name of the employee
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+                  description: Email address of the employee
+                password:
+                  type: string
+                  format: password
+                  example: securepassword
+                  description: Password for the employee's account
+                phoneNumber:
+                  type: string
+                  example: +1234567890
+                  description: Phone number of the employee
+                role:
+                  type: string
+                  example: Developer
+                  description: Role of the employee
+                department:
+                  type: string
+                  example: Engineering
+                  description: Department of the employee
+                dateOfJoining:
+                  type: string
+                  format: date
+                  example: 2024-01-01
+                  description: Date the employee joined the organization
+                level:
+                  type: string
+                  enum: [Junior, Mid-level, Senior, CEO]
+                  example: Junior
+                  description: Level of the employee
+                yearsOfWork:
+                  type: integer
+                  example: 2
+                  description: Number of years the employee has worked
+                availability:
+                  type: object
+                  properties:
+                    status:
+                      type: string
+                      enum: [Available, Not Available]
+                      example: Available
+                      description: Availability status of the employee
+                    reason:
+                      type: string
+                      example: Available for new projects
+                      description: Reason for the current availability status
+                    nextAvailability:
+                      type: string
+                      format: date
+                      example: 2024-12-31
+                      description: Next availability date if not available
+                organization:
+                  type: string
+                  format: uuid
+                  example: 66e33cee49303058e861b3ce
+                  description: ID of the organization the employee belongs to
+              required:
+                - name
+                - email
+                - password
+                - role
+                - department
+                - dateOfJoining
+                - level
+                - organization
+      responses:
+        '201':
+          description: Employee registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        format: uuid
+                        example: 66e33e19f4f7e8ebcae59a61
+                      name:
+                        type: string
+                        example: John Doe
+                      email:
+                        type: string
+                        format: email
+                        example: johndoe@example.com
+                      phoneNumber:
+                        type: string
+                        example: +1234567890
+                      role:
+                        type: string
+                        example: Developer
+                      department:
+                        type: string
+                        example: Engineering
+                      dateOfJoining:
+                        type: string
+                        format: date
+                        example: 2024-01-01
+                      level:
+                        type: string
+                        example: Junior
+                      yearsOfWork:
+                        type: integer
+                        example: 2
+                      status:
+                        type: string
+                        example: pending
+                      organization:
+                        type: string
+                        format: uuid
+                        example: 66e33cee49303058e861b3ce
+                      userType:
+                        type: string
+                        example: Employee
+        '400':
+          description: Bad request - User with this email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: User with this email already exists

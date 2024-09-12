@@ -3,38 +3,11 @@ import { NextFunction, Request, Response } from 'express';
 import { createHash } from 'crypto';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { User, UserDocument } from '../models/User';
+import { User } from '../models/User';
+import { Organization } from '../models/Organization';
 import ErrorResponse from '../utils/errorResponse';
 import asyncHandler from '../middlewares/async';
 import sendEmail from '../utils/sendMail';
-
-export const logoutUser = asyncHandler(
-  async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    const userId = req.user?._id;
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return next(
-        new ErrorResponse(
-          'User not found',
-          statusCode.notFound
-        )
-      );
-    }
-
-    res.setHeader('Authorization', '');
-
-    return res.status(statusCode.success).json({
-      success: true,
-      message: 'User logged out successfully',
-    });
-  }
-);
 
 export const loginUser = asyncHandler(
   async (
@@ -44,7 +17,10 @@ export const loginUser = asyncHandler(
   ) => {
     const { email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const existingUser =
+      (await User.findOne({ email })) ||
+      (await Organization.findOne({ email }));
+
     if (!existingUser) {
       return next(
         new ErrorResponse(
@@ -70,24 +46,34 @@ export const loginUser = asyncHandler(
 
     const secretKey = process.env.SECRET_KEY as string;
 
-    const tokenPayload = {
+    const tokenPayload: any = {
       userId: existingUser._id,
       userType: existingUser.userType,
-      level: existingUser.level,
     };
+
+    if (existingUser.userType === 'Employee') {
+      tokenPayload.level = (existingUser as any).level;
+    }
 
     const token = jwt.sign(tokenPayload, secretKey, {
       expiresIn: '7d',
     });
 
-    return res
+    res
       .status(statusCode.success)
       .header('Authorization', `Bearer ${token}`)
       .json({
         success: true,
         message: 'User logged in successfully',
-        user: existingUser,
-        token: token,
+        user: {
+          id: existingUser._id,
+          email: existingUser.email,
+          userType: existingUser.userType,
+          ...(existingUser.userType === 'Employee' && {
+            level: (existingUser as any).level,
+          }),
+        },
+        token,
       });
   }
 );
@@ -102,107 +88,43 @@ export const registerEmployee = asyncHandler(
       name,
       email,
       password,
+      phoneNumber,
+      role,
+      department,
+      dateOfJoining,
       level,
       yearsOfWork,
       availability,
-      userType,
+      organization,
     } = req.body;
-
-    if (password.length < 6) {
-      return next(
-        new ErrorResponse(
-          'Password must be at least 6 characters long',
-          statusCode.badRequest
-        )
-      );
-    }
-
-    if (
-      !['Junior', 'Mid-level', 'Senior', 'CEO'].includes(
-        level
-      )
-    ) {
-      return next(
-        new ErrorResponse(
-          'Invalid level',
-          statusCode.badRequest
-        )
-      );
-    }
-
-    if (yearsOfWork < 0 || yearsOfWork > 99) {
-      return next(
-        new ErrorResponse(
-          'Years of work must be between 0 and 99',
-          statusCode.badRequest
-        )
-      );
-    }
-
-    if (!['Employee', 'Organization'].includes(userType)) {
-      return next(
-        new ErrorResponse(
-          'Invalid userType',
-          statusCode.badRequest
-        )
-      );
-    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return next(
-        new ErrorResponse(
-          'User with this email already exists',
-          statusCode.badRequest
-        )
-      );
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists',
+      });
     }
-
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    if (availability) {
-      if (
-        availability.status === 'Not Available' &&
-        (!availability.reason ||
-          !availability.nextAvailability)
-      ) {
-        return next(
-          new ErrorResponse(
-            'Reason and next Available date are required for "Not Available" status',
-            statusCode.badRequest
-          )
-        );
-      }
-      if (availability.nextAvailability) {
-        availability.nextAvailability = new Date(
-          availability.nextAvailability
-        );
-      }
-    }
-
-    const newUser: Partial<UserDocument> = {
+    const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      level: level as
-        | 'Junior'
-        | 'Mid-level'
-        | 'Senior'
-        | 'CEO',
+      phoneNumber,
+      role,
+      department,
+      dateOfJoining,
+      level,
       yearsOfWork,
       availability,
+      organization,
       userType: 'Employee',
-    };
-
-    const createdUser = await User.create(
-      newUser as UserDocument
-    );
-
-    return res.status(statusCode.created).json({
-      success: true,
-      message: 'Employee registered successfully',
-      user: createdUser,
     });
+
+    await newUser.save();
+
+    res.status(201).json({ success: true, user: newUser });
   }
 );
 
@@ -216,46 +138,88 @@ export const registerOrganization = asyncHandler(
       name,
       email,
       password,
-      level,
-      yearsOfWork,
       organizationName,
+      industryType,
+      taxId,
+      numberOfEmployees,
     } = req.body;
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return next(
-        new ErrorResponse(
-          'User with this email already exists',
-          statusCode.badRequest
-        )
-      );
+    const existingOrganization = await Organization.findOne(
+      { email }
+    );
+    if (existingOrganization) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Organization with this email already exists',
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser: Partial<UserDocument> = {
+    const newOrganization = new Organization({
       name,
       email,
       password: hashedPassword,
-      level: level as
-        | 'Junior'
-        | 'Mid-level'
-        | 'Senior'
-        | 'CEO',
-      yearsOfWork,
       organizationName,
+      industryType,
+      taxId,
+      numberOfEmployees,
       userType: 'Organization',
-    };
-
-    const createdUser = await User.create(
-      newUser as UserDocument
-    );
-
-    return res.status(statusCode.created).json({
-      success: true,
-      message: 'Organization registered successfully',
-      user: createdUser,
     });
+
+    await newOrganization.save();
+
+    res.status(201).json({
+      success: true,
+      newOrganization,
+    });
+  }
+);
+
+export const logoutUser = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const userId = req.user?._id;
+
+    const user =
+      (await User.findById(userId)) ||
+      (await Organization.findById(userId));
+
+    if (!user) {
+      return next(
+        new ErrorResponse(
+          'User not found',
+          statusCode.notFound
+        )
+      );
+    }
+
+    res.setHeader('Authorization', '');
+
+    return res.status(statusCode.success).json({
+      success: true,
+      message: 'User logged out successfully',
+    });
+  }
+);
+
+export const searchOrganizations = asyncHandler(
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const searchQuery = req.query.search as string;
+
+    const organizations = await Organization.find({
+      name: { $regex: searchQuery, $options: 'i' }, // Case-insensitive search
+    }).limit(10); // Limit to 10 results
+
+    res.status(200).json(organizations);
   }
 );
 
@@ -265,9 +229,11 @@ export const forgotPassword = asyncHandler(
     res: Response,
     next: NextFunction
   ) => {
-    const user = await User.findOne({
-      email: req.body.email,
-    });
+    const user =
+      (await User.findOne({ email: req.body.email })) ||
+      (await Organization.findOne({
+        email: req.body.email,
+      }));
 
     if (!user) {
       return next(
@@ -279,7 +245,6 @@ export const forgotPassword = asyncHandler(
     }
 
     const resetToken = user?.getResetPasswordToken();
-
     await user?.save({ validateBeforeSave: false });
 
     const resetUrl = `${req.protocol}://${req.get(
@@ -300,7 +265,6 @@ export const forgotPassword = asyncHandler(
 
     user.resetPasswordToken = '';
     user.resetPasswordExpire = undefined;
-
     await user.save({ validateBeforeSave: false });
   }
 );
@@ -315,10 +279,15 @@ export const resetPassword = asyncHandler(
       .update(req.params.resettoken)
       .digest('hex');
 
-    const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
+    const user =
+      (await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+      })) ||
+      (await Organization.findOne({
+        resetPasswordToken,
+        resetPasswordExpire: { $gt: Date.now() },
+      }));
 
     if (!user) {
       return next(
@@ -330,7 +299,6 @@ export const resetPassword = asyncHandler(
     }
 
     const newResetPassword = req.body.password;
-
     if (req.body.password.length < 6) {
       return next(
         new ErrorResponse(
@@ -344,7 +312,6 @@ export const resetPassword = asyncHandler(
       newResetPassword,
       10
     );
-
     user.password = hashedResetPassword;
     user.resetPasswordToken = '';
     user.resetPasswordExpire = undefined;

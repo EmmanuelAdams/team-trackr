@@ -1,12 +1,13 @@
 paths:
-  /api/v1/auth/login:
+  /api/v1/users/login:
     post:
-      summary: Login user
-      description: Login user with the provided details.
+      summary: Log in a user
+      description: This endpoint authenticates a user by their email and password and returns a JWT token for authorization.
       tags:
         - Auth
       security: []
       requestBody:
+        description: User login credentials
         required: true
         content:
           application/json:
@@ -15,16 +16,20 @@ paths:
               properties:
                 email:
                   type: string
+                  format: email
+                  example: johndoe@example.com
+                  description: The email address of the user
                 password:
                   type: string
+                  format: password
+                  example: securepassword
+                  description: The password for the user’s account
+              required:
+                - email
+                - password
       responses:
         '200':
           description: User logged in successfully
-          headers:
-            Authorization:
-              description: Bearer [TOKEN]
-              schema:
-                type: string
           content:
             application/json:
               schema:
@@ -32,57 +37,44 @@ paths:
                 properties:
                   success:
                     type: boolean
-                    description: Indicates if the login was successful.
                     example: true
                   message:
                     type: string
-                    description: A message indicating the success of the login.
                     example: User logged in successfully
                   user:
-                    $ref: '#/definitions/User'
-                    description: The user object.
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 66e33e19f4f7e8ebcae59a61
+                      email:
+                        type: string
+                        format: email
+                        example: johndoe@example.com
+                      userType:
+                        type: string
+                        example: Employee
+                      level:
+                        type: string
+                        enum:
+                          [Junior, Mid-level, Senior, CEO]
+                        example: Junior
+                        description: Level of the employee (only present if userType is Employee)
                   token:
                     type: string
-                    description: The JWT token for authentication.
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                    description: JWT token for the user
         '401':
           description: Invalid credentials
           content:
             application/json:
-              example:
-                success: false
-                error: Invalid credentials
-        '422':
-          description: Failed to login user
-          content:
-            application/json:
-              example:
-                success: false
-                error: Failed to login user
-
-definitions:
-  User:
-    type: object
-    properties:
-      _id:
-        type: string
-      name:
-        type: string
-      email:
-        type: string
-      level:
-        type: string
-        enum: [Junior, Mid-level, Senior, CEO]
-      yearsOfWork:
-        type: number
-      availability:
-        type: object
-        properties:
-          status:
-            type: string
-            enum: [Available, Not Available]
-          reason:
-            type: string
-          nextAvailability:
-            type: string
-            format: date
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Invalid credentials

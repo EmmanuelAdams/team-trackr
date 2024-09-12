@@ -1,4 +1,8 @@
-import { model, Schema, Document } from 'mongoose';
+import mongoose, {
+  model,
+  Schema,
+  Document,
+} from 'mongoose';
 import crypto from 'crypto';
 
 interface Availability {
@@ -11,16 +15,20 @@ export interface UserDocument extends Document {
   name: string;
   password: string;
   email: string;
+  phoneNumber?: string;
+  role: string;
+  department: string;
+  dateOfJoining: Date;
   level: 'Junior' | 'Mid-level' | 'Senior' | 'CEO';
-  yearsOfWork: number;
-  availability: Availability;
-  userType: 'Employee' | 'Organization';
-  organizationName?: string;
-  employees?: string[];
+  status: 'pending' | 'approved' | 'rejected';
+  yearsOfWork?: number;
+  availability?: Availability;
+  userType: 'Employee';
   resetPasswordToken?: string;
   resetPasswordExpire?: Date;
-  getResetPasswordToken: () => string;
   createdAt: Date;
+  organization: mongoose.Schema.Types.ObjectId;
+  getResetPasswordToken: () => string;
 }
 
 const UserSchema = new Schema<UserDocument>({
@@ -45,6 +53,17 @@ const UserSchema = new Schema<UserDocument>({
       message: 'Invalid email format',
     },
   },
+  phoneNumber: {
+    type: String,
+    validate: {
+      validator: (value: string) =>
+        /^\+?[0-9]{7,15}$/.test(value),
+      message: 'Invalid phone number format',
+    },
+  },
+  role: { type: String, required: true },
+  department: { type: String, required: true },
+  dateOfJoining: { type: Date, required: true },
   level: {
     type: String,
     enum: ['Junior', 'Mid-level', 'Senior', 'CEO'],
@@ -52,52 +71,45 @@ const UserSchema = new Schema<UserDocument>({
   },
   yearsOfWork: {
     type: Number,
-    required: true,
     min: 0,
     max: 99,
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  },
+  organization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Organization',
+    required: true,
+  },
   availability: {
-    type: {
-      status: {
-        type: String,
-        enum: ['Available', 'Not Available'],
-        required: true,
+    status: {
+      type: String,
+      enum: ['Available', 'Not Available'],
+    },
+    reason: {
+      type: String,
+      required: function (this: UserDocument) {
+        return (
+          this.availability?.status === 'Not Available'
+        );
       },
-      reason: {
-        type: String,
-        required: function (this: UserDocument) {
-          return (
-            this.availability?.status === 'Not Available'
-          );
-        },
-      },
-      nextAvailability: {
-        type: Date,
-        required: function (this: UserDocument) {
-          return (
-            this.availability?.status === 'Not Available'
-          );
-        },
+    },
+    nextAvailability: {
+      type: Date,
+      required: function (this: UserDocument) {
+        return (
+          this.availability?.status === 'Not Available'
+        );
       },
     },
   },
   userType: {
     type: String,
-    enum: ['Employee', 'Organization'],
+    enum: ['Employee'],
     required: true,
-  },
-  organizationName: {
-    type: String,
-    required: function (this: UserDocument) {
-      return this.userType === 'Organization';
-    },
-  },
-  employees: {
-    type: [String],
-    required: function (this: UserDocument) {
-      return this.userType === 'Organization';
-    },
-    default: [],
   },
   resetPasswordToken: {
     type: String,
@@ -112,21 +124,14 @@ const UserSchema = new Schema<UserDocument>({
   },
 });
 
-// Generate and hash password token
 UserSchema.methods.getResetPasswordToken = function () {
-  // Generate token
   const resetToken = crypto.randomBytes(20).toString('hex');
-
-  // Hash token and set to resetPasswordToken field
   this.resetPasswordToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-
-  // Set expiration
   this.resetPasswordExpire =
     Date.now() + 24 * 60 * 60 * 1000;
-
   return resetToken;
 };
 
